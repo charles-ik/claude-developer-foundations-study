@@ -1,0 +1,51 @@
+# Accelerators & IP Contribution
+
+> Course page: [Accelerators & IP Contribution](https://anthropic-partners.skilljar.com/path/claude-certified-developer-foundations/accelerators-ip-contribution/486746/scorm/1gpfepjydcsjm)  
+> Embedded source: [Developer Module 5](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html)  
+> Extraction status: **Complete — 25 of 25 screens archived across 9 of 9 sections**
+
+The files below contain a faithful transcription of the authenticated course. Markdown formatting is presentational only; no study synthesis is mixed into the archive.
+
+## Section manifest
+
+| Section | Screens | Archived | File | Exact first screen |
+| --- | ---: | ---: | --- | --- |
+| 01 Module Introduction | 1 | 1 | [01-module-introduction.md](01-module-introduction.md) | [S01](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S01) |
+| 02 Packaging for Reuse | 3 | 3 | [02-packaging-for-reuse.md](02-packaging-for-reuse.md) | [S02](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S02) |
+| 03 Contributing Back | 3 | 3 | [03-contributing-back.md](03-contributing-back.md) | [S05](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S05) |
+| 04 Requirements & Lifecycle | 4 | 4 | [04-requirements-lifecycle.md](04-requirements-lifecycle.md) | [S07A](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07A) |
+| 05 Deployment & Versioning | 3 | 3 | [05-deployment-versioning.md](05-deployment-versioning.md) | [S08](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S08) |
+| 06 Comparing Platforms | 3 | 3 | [06-comparing-platforms.md](06-comparing-platforms.md) | [S11](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S11) |
+| 07 Trust Boundaries | 3 | 3 | [07-trust-boundaries.md](07-trust-boundaries.md) | [S14](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S14) |
+| 08 Cumulative Task | 2 | 2 | [08-cumulative-task.md](08-cumulative-task.md) | [S17](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S17) |
+| 09 Key Takeaways | 3 | 3 | [09-key-takeaways.md](09-key-takeaways.md) | [S19](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S19) |
+
+## Complete screen index
+
+| Screen | Lesson title | Local Markdown | Exact course link |
+| ---: | --- | --- | --- |
+| 1 | What you will be able to do by the end | [01-module-introduction.md](01-module-introduction.md#screen-1--what-you-will-be-able-to-do-by-the-end) | [S01](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S01) |
+| 2 | Packaging a working build so the next engagement starts from an asset | [02-packaging-for-reuse.md](02-packaging-for-reuse.md#screen-2--packaging-a-working-build-so-the-next-engagement-starts-from-an-asset) | [S02](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S02) |
+| 3 | The template that shipped fast and could not be reused | [02-packaging-for-reuse.md](02-packaging-for-reuse.md#screen-3--the-template-that-shipped-fast-and-could-not-be-reused) | [S03](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S03) |
+| 4 | Checkpoint 1: Fix the broken accelerator template | [02-packaging-for-reuse.md](02-packaging-for-reuse.md#screen-4--checkpoint-1-fix-the-broken-accelerator-template) | [S04](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S04) |
+| 5 | Moving an asset from private reuse into shared infrastructure a maintainer accepts | [03-contributing-back.md](03-contributing-back.md#screen-5--moving-an-asset-from-private-reuse-into-shared-infrastructure-a-maintainer-accepts) | [S05](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S05) |
+| 6 | The pull request a maintainer could not verify | [03-contributing-back.md](03-contributing-back.md#screen-6--the-pull-request-a-maintainer-could-not-verify) | [S06](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S06) |
+| 7 | Checkpoint 2: Choose the contribution channel and the readiness fix | [03-contributing-back.md](03-contributing-back.md#screen-7--checkpoint-2-choose-the-contribution-channel-and-the-readiness-fix) | [S07](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07) |
+| 8 | From business requirements to functional and infrastructure requirements | [04-requirements-lifecycle.md](04-requirements-lifecycle.md#screen-8--from-business-requirements-to-functional-and-infrastructure-requirements) | [S07A](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07A) |
+| 9 | Checkpoint 3: extract the requirements | [04-requirements-lifecycle.md](04-requirements-lifecycle.md#screen-9--checkpoint-3-extract-the-requirements) | [S07B](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07B) |
+| 10 | Systems lifecycle for Claude applications | [04-requirements-lifecycle.md](04-requirements-lifecycle.md#screen-10--systems-lifecycle-for-claude-applications) | [S07C](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07C) |
+| 11 | Checkpoint 4: place the work in the right phase | [04-requirements-lifecycle.md](04-requirements-lifecycle.md#screen-11--checkpoint-4-place-the-work-in-the-right-phase) | [S07D](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S07D) |
+| 12 | Choosing where a Claude workload runs and versioning what ships | [05-deployment-versioning.md](05-deployment-versioning.md#screen-12--choosing-where-a-claude-workload-runs-and-versioning-what-ships) | [S08](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S08) |
+| 13 | The deployment that broke when the model alias moved | [05-deployment-versioning.md](05-deployment-versioning.md#screen-13--the-deployment-that-broke-when-the-model-alias-moved) | [S09](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S09) |
+| 14 | Checkpoint 5: Match the deployment platform and version pin to each scenario | [05-deployment-versioning.md](05-deployment-versioning.md#screen-14--checkpoint-5-match-the-deployment-platform-and-version-pin-to-each-scenario) | [S10](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S10) |
+| 15 | Comparing platforms on latency, compliance, and cost so the choice survives review | [06-comparing-platforms.md](06-comparing-platforms.md#screen-15--comparing-platforms-on-latency-compliance-and-cost-so-the-choice-survives-review) | [S11](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S11) |
+| 16 | The platform picked on familiarity that failed residency | [06-comparing-platforms.md](06-comparing-platforms.md#screen-16--the-platform-picked-on-familiarity-that-failed-residency) | [S12](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S12) |
+| 17 | Checkpoint 6: Diagnose the platform mismatch from a comparison trace | [06-comparing-platforms.md](06-comparing-platforms.md#screen-17--checkpoint-6-diagnose-the-platform-mismatch-from-a-comparison-trace) | [S13](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S13) |
+| 18 | Coordinating several Claude deployments with the trust boundaries holding under review | [07-trust-boundaries.md](07-trust-boundaries.md#screen-18--coordinating-several-claude-deployments-with-the-trust-boundaries-holding-under-review) | [S14](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S14) |
+| 19 | The seam nobody marked as a boundary | [07-trust-boundaries.md](07-trust-boundaries.md#screen-19--the-seam-nobody-marked-as-a-boundary) | [S15](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S15) |
+| 20 | Checkpoint 7: Complete the multi-component boundary configuration | [07-trust-boundaries.md](07-trust-boundaries.md#screen-20--checkpoint-7-complete-the-multi-component-boundary-configuration) | [S16](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S16) |
+| 21 | Cumulative task: Find all three, explain each, write the correction | [08-cumulative-task.md](08-cumulative-task.md#screen-21--cumulative-task-find-all-three-explain-each-write-the-correction) | [S17](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S17) |
+| 22 | Cumulative task: assemble and verify the corrected deployment | [08-cumulative-task.md](08-cumulative-task.md#screen-22--cumulative-task-assemble-and-verify-the-corrected-deployment) | [S18](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S18) |
+| 23 | Key takeaways | [09-key-takeaways.md](09-key-takeaways.md#screen-23--key-takeaways) | [S19](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S19) |
+| 24 | Key terms from this module | [09-key-takeaways.md](09-key-takeaways.md#screen-24--key-terms-from-this-module) | [S19B](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#S19B) |
+| 25 | Congrats! You’ve successfully completed this module. | [09-key-takeaways.md](09-key-takeaways.md#screen-25--congrats-youve-successfully-completed-this-module) | [CERT](https://anthropic-partners.skilljar.com/content/wp/4hdejjwplbrm/3rtcsmg1kllky/Developer_M5_vF2.html#CERT) |
