@@ -20,13 +20,18 @@ An unofficial study resource for the Claude Certified Developer – Foundations 
 
 ## Use the notebooks
 
-Offline exercises run without credentials. Optional live API cells share the root [`study_support.py`](study_support.py) loader:
+The notebooks make real Claude API calls with the Anthropic SDK routed through [OpenRouter](https://openrouter.ai/docs/guides/community/anthropic-agent-sdk). They require an OpenRouter API key and may incur API charges.
 
 ```bash
+python -m pip install -r requirements.txt
 cp .env.example .env
-# Set ANTHROPIC_API_KEY in .env; never commit that file.
+# Set OPENROUTER_API_KEY in .env; never commit that file.
 jupyter notebook
 ```
+
+Run each notebook from top to bottom. The shared [`study_support.py`](study_support.py) loader reads the root `.env`, points `Anthropic` at `https://openrouter.ai/api`, and defaults to the pinned `anthropic/claude-sonnet-4.6` model. Set `CLAUDE_MODEL` deliberately when testing a migration.
+
+Run `python test_notebooks.py` for an offline JSON, syntax, API-call, and cell-size check.
 
 ## Regenerate the HTML library
 
