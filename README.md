@@ -1,6 +1,13 @@
 # Claude Developer Foundations — study guide & practice studio
 
-An unofficial study workspace you can clone and use on your own computer. It includes the archived course, 65 flashcards, three 30-question mock tests, quick practice, a review queue, and optional AI explanations grounded in the course material.
+## Quick start
+
+1. **Clone this repository or download and extract its ZIP.** Open the resulting folder on your computer.
+2. **Start studying immediately:** double-click **`START_HERE.html`**, then click **Open study guide HTML pages** or **Open quiz practice studio**. It opens in your default browser. No VS Code, Python, or API key is needed for offline study.
+3. **For the AI-enabled studio:** install Python 3.10+, then double-click **`Open Study Studio.command`** (macOS) or **`Open Study Studio.bat`** (Windows). On Linux, run **`python3 practice_server.py --open`** from the repository folder. Keep the terminal open while studying; add your own key in **AI tutor settings**.
+4. **Resume later:** reopen using the same launcher or HTML file, browser profile, and address, then click **Resume session**. Answers and review flags save on your computer automatically.
+
+If an HTML file opens in an editor, right-click it → **Open With** → your browser. Open the downloaded files locally; GitHub displays their source instead of running the app.
 
 ## 1. Get your copy
 
@@ -47,6 +54,8 @@ py -3 practice_server.py --open
 To open directly into the reading library, add `--page index.html`. If the browser does not open automatically, visit the address printed in the terminal.
 
 ## How practice works
+
+An unofficial study workspace you can clone and use on your own computer. It includes the archived course, 65 flashcards, three 30-question mock tests, quick practice, a review queue, and optional AI explanations grounded in the course material.
 
 - **Mock tests:** 30 questions per set, covering all five modules. Untimed; answers and AI help unlock on submission.
 - **Study mode:** get feedback after each question. Checked wrong choices appear in light red, and correct choices in green. Before checking, a selection is neutral.

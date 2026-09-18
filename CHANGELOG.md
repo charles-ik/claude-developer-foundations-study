@@ -12,6 +12,7 @@
 
 ### Changed
 
+- README now starts with explicit download, double-click startup, AI launcher, and resume instructions.
 - Notebook lesson links now open the corresponding local HTML page and exact heading.
 - All five notebooks now require one centrally configured OpenRouter API key, call Claude through the Anthropic SDK, and interleave shorter runnable snippets with certification-grounded explanations.
 
