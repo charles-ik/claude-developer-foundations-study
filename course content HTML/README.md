@@ -25,7 +25,7 @@ Open [`exams.html`](exams.html) for three authored 30-question mock tests, or a 
 From the repository root, using Python 3.10 or later (standard library only):
 
 ```bash
-python3 practice_server.py
+python3 practice_server.py --open
 ```
 
 Open [the local practice studio](http://127.0.0.1:8765/exams.html). Use `--port 8766` if the default port is occupied. Keep the server running while studying with AI; stop it with Ctrl+C.
@@ -44,7 +44,7 @@ GEMINI_MODEL=your-gemini-model-id
 
 Do not commit `.env`. An OpenAI API key is required for the OpenAI provider; ChatGPT/Codex account credentials are not API keys. Each tutor request may incur provider charges. Requests use the documented [OpenRouter chat API](https://openrouter.ai/docs/quickstart), [OpenAI chat API](https://developers.openai.com/api/reference/resources/chat), and [Gemini OpenAI-compatible API](https://ai.google.dev/gemini-api/docs/openai).
 
-The tutor receives the current question, selected choices, the student's current request, and the exact cited course excerpt. Explanation mode also supplies the fixed answer key and rationale. Hint mode omits the answer key and asks for a conceptual nudge. Each request is independent; previous tutor messages are not sent. AI text is displayed as text, never executed or used to change scoring. Models can still make mistakes or reveal more than requested; the archived excerpt and fixed key remain the reference. Unrelated queries should be identified as unsupported by the supplied excerpt.
+The tutor receives the current question, selected choices, the student's current request, and the exact cited course excerpt. Explanation mode also supplies the fixed answer key and rationale. Hint mode omits the answer key and asks for a conceptual nudge. Each request is independent; previous tutor messages are not sent. AI Markdown is rendered locally with markdown-it; raw HTML and images are disabled, and links are restricted to HTTP(S), mailto, or page fragments. It never executes model-supplied HTML or changes scoring. Models can still make mistakes or reveal more than requested; the archived excerpt and fixed key remain the reference. Unrelated queries should be identified as unsupported by the supplied excerpt.
 
 The server binds only to `127.0.0.1`, serves the HTML-library directory, rejects cross-origin tutor requests, allows only the three fixed provider endpoints, and does not forward keys across redirects. Keys supplied in the UI remain only in tab memory; server keys stay on the server. Forget entered keys does not unset server environment keys. There is no cloud account, shared database, or hosted proxy. This server is for local personal use.
 

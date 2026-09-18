@@ -1,5 +1,18 @@
 (() => {
   'use strict';
+  const markdown = window.markdownit({ html: false, breaks: true }).disable('image');
+  markdown.validateLink = url => /^(https?:\/\/|mailto:|#)/i.test(url);
+  markdown.renderer.rules.link_open = (tokens, index, options, env, renderer) => {
+    tokens[index].attrSet('target', '_blank');
+    tokens[index].attrSet('rel', 'noopener noreferrer');
+    return renderer.renderToken(tokens, index, options);
+  };
+  function renderTutor(text, error = false) {
+    const output = document.querySelector('#tutor-output');
+    output.classList.toggle('error', error);
+    if (error) output.textContent = text;
+    else output.innerHTML = markdown.render(text);
+  }
   const bank = window.EXAM_DATA;
   const root = document.querySelector('#workspace');
   if (!bank?.questions?.length) { root.textContent = 'Question data is missing. Run node "course content HTML/build.mjs" --verify.'; return; }
@@ -86,7 +99,7 @@
       <section class="tutor"><div class="tutor-heading"><h3>AI study partner</h3><button class="icon-button" data-action="settings" aria-label="AI tutor settings">⚙</button></div><p>${disabledAI ? 'Keep this attempt independent. The tutor unlocks when you submit.' : 'Think it through together. Grounded in this question’s course excerpt.'}</p>${!disabledAI ? `<div class="button-row"><button data-action="tutor" data-kind="${revealed ? 'explain' : 'hint'}">${revealed ? 'Explain my answer' : 'Give me a hint'}</button></div><label for="tutor-question">${revealed ? 'Ask about this answer' : 'Ask for a nudge'}<textarea id="tutor-question" maxlength="1000" placeholder="${revealed ? 'Why is my choice wrong?' : 'Help me understand the concept…'}"></textarea></label><button data-action="tutor" data-kind="${revealed ? 'explain' : 'hint'}" style="margin-top:10px;font-size:11px">Ask tutor →</button><p class="small" style="margin-top:12px">AI can be wrong. The cited lesson and fixed answer key remain the reference.</p><div id="tutor-output" class="tutor-output" role="status" aria-live="polite"></div>` : ''}</section></aside></div>`;
     if (!disabledAI) {
       const cache = tutor[q.id];
-      if (cache) { document.querySelector('#tutor-output').textContent = cache.text; document.querySelector('#tutor-output').classList.toggle('error', cache.error); }
+      if (cache) renderTutor(cache.text, cache.error);
     }
   }
   function results() {
@@ -132,11 +145,11 @@
       if (!response.ok) throw new Error(data.error || 'The tutor request failed. Try again.');
       if (typeof data.text !== 'string' || !data.text.trim()) throw new Error('The provider returned no explanation. Try another model.');
       if (sequence !== requestSequence) return;
-      tutor[q.id] = { text: data.text, error: false }; output.textContent = data.text;
+      tutor[q.id] = { text: data.text, error: false }; renderTutor(data.text);
     } catch (error) {
       if (sequence !== requestSequence) return;
       const text = error.name === 'AbortError' ? 'The tutor timed out. Your answer is saved; try again or choose another model.' : error.message;
-      tutor[q.id] = { text, error: true }; output.textContent = text; output.classList.add('error');
+      tutor[q.id] = { text, error: true }; renderTutor(text, true);
     } finally { clearTimeout(timeout); if (sequence === requestSequence) buttons.forEach(b => { b.disabled = false; }); }
   }
   document.addEventListener('click', event => {

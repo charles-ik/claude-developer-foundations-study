@@ -81,3 +81,25 @@ if '--http' in __import__('sys').argv:
     assert fetch('/api/explain', b'{', headers)[0] == 400
     assert fetch('/api/explain', b'{}', dict(headers, Origin='http://untrusted.example'))[0] == 403
     print('PASS: HTTP routes, secret/path isolation, host/origin checks, and malformed-request errors.')
+
+
+# Launchers open the default browser and reuse only our own server on the port.
+import contextlib
+import errno
+from unittest.mock import Mock
+server = Mock()
+server.serve_forever.side_effect = KeyboardInterrupt
+with patch.object(Path, 'exists', return_value=False), patch.object(app, 'ThreadingHTTPServer', return_value=server), patch.object(app.webbrowser, 'open') as browser, contextlib.redirect_stdout(io.StringIO()):
+    app.main(['--open', '--page', 'index.html'])
+    browser.assert_called_once_with('http://127.0.0.1:8765/index.html')
+    server.server_close.assert_called_once()
+for body, expected_code in [({'app': 'ccdv-practice-studio'}, 0), ({'app': 'other'}, 1), ([], 1)]:
+    with patch.object(Path, 'exists', return_value=False), patch.object(app, 'ThreadingHTTPServer', side_effect=OSError(errno.EADDRINUSE, 'in use')), patch.object(app.urllib.request, 'urlopen', return_value=io.BytesIO(json.dumps(body).encode())), patch.object(app.webbrowser, 'open') as browser, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        try:
+            app.main(['--open'])
+        except SystemExit as exc:
+            assert exc.code == expected_code
+        else:
+            raise AssertionError('Expected launcher to exit after detecting an occupied port')
+        assert browser.call_count == (1 if expected_code == 0 else 0)
+print('PASS: default-browser launch, clean shutdown, existing-studio reuse, and occupied-port rejection.')
