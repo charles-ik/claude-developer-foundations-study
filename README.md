@@ -5,6 +5,7 @@ An unofficial study resource for the Claude Certified Developer – Foundations 
 ## Start here
 
 - [HTML study library](course%20content%20HTML/index.html) — searchable local reading experience for all 108 course screens
+- [Practice studio](course%20content%20HTML/exams.html) — three 30-question mock tests, quick practice, a review queue, and an optional AI tutor; [setup and usage](course%20content%20HTML/README.md#practice-studio)
 - [Flashcards](course%20content%20HTML/flashcards.html) — 65 cards covering the detailed exam objectives
 - [Exam-guide notes](archive/exam-guide.md) and [source PDF](Developer%20foundations%20example%20guide.pdf)
 - [Complete Markdown course archive](course%20extraction/README.md) — 44 ordered sections across five modules

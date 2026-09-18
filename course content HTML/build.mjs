@@ -6,6 +6,7 @@ const outputDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(outputDir, "..");
 const sourceDir = path.join(projectDir, "course extraction");
 const archiveDir = path.join(projectDir, "archive");
+const examsPath = path.join(outputDir, "data", "exams.json");
 const flashcardsPath = path.join(outputDir, "data", "flashcards.json");
 
 const FAVICON =
@@ -642,12 +643,12 @@ function sidebar(model, pageRel, current) {
       return `<div class="nav-module${moduleCurrent ? " is-current" : ""}"><a class="nav-module-heading" href="${escapeHtml(relativeHref(pageRel, module.pageRel))}"${moduleCurrent ? ' aria-current="page"' : ""}><span class="module-code">M${escapeHtml(module.id)}</span><span>${escapeHtml(module.title)}</span><small>${module.screens.length} screens</small></a><div class="nav-sections">${sectionLinks}</div></div>`;
     })
     .join("");
-  return `<aside class="sidebar" id="library-nav" aria-label="Course navigation"><div class="sidebar-heading"><a href="${escapeHtml(home)}" class="sidebar-home"><span class="sidebar-mark">CCDV</span><span>Course library</span></a><button class="sidebar-close" type="button" data-nav-close aria-label="Close course navigation">×</button></div><nav>${moduleNav}</nav><div class="sidebar-footer"><a class="nav-special${current === "flashcards" ? " is-active" : ""}" href="${escapeHtml(flashcards)}"${current === "flashcards" ? ' aria-current="page"' : ""}><span>◇</span><span>Flashcards</span><small>generated study aid</small></a><a class="nav-special${current === "exam" ? " is-active" : ""}" href="${escapeHtml(exam)}"${current === "exam" ? ' aria-current="page"' : ""}><span>□</span><span>Exam blueprint</span><small>supplement</small></a><p>5 modules · 44 sections · 108 screens</p></div></aside>`;
+  return `<aside class="sidebar" id="library-nav" aria-label="Course navigation"><div class="sidebar-heading"><a href="${escapeHtml(home)}" class="sidebar-home"><span class="sidebar-mark">CCDV</span><span>Course library</span></a><button class="sidebar-close" type="button" data-nav-close aria-label="Close course navigation">×</button></div><nav>${moduleNav}</nav><div class="sidebar-footer"><a class="nav-special" href="${escapeHtml(relativeHref(pageRel, "exams.html"))}"><span>◈</span><span>Practice studio</span><small>90 questions · mock tests</small></a><a class="nav-special${current === "flashcards" ? " is-active" : ""}" href="${escapeHtml(flashcards)}"${current === "flashcards" ? ' aria-current="page"' : ""}><span>◇</span><span>Flashcards</span><small>generated study aid</small></a><a class="nav-special${current === "exam" ? " is-active" : ""}" href="${escapeHtml(exam)}"${current === "exam" ? ' aria-current="page"' : ""}><span>□</span><span>Exam blueprint</span><small>supplement</small></a><p>5 modules · 44 sections · 108 screens</p></div></aside>`;
 }
 
 function topbar(model, pageRel) {
   const home = relativeHref(pageRel, "index.html");
-  return `<header class="topbar"><div class="topbar-inner"><button class="nav-toggle" type="button" data-nav-toggle aria-controls="library-nav" aria-expanded="false"><span></span><span></span><span></span><span class="sr-only">Open course navigation</span></button><a class="wordmark" href="${escapeHtml(home)}"><span class="wordmark-code">CCDV-F</span><span class="wordmark-label">FOUNDATIONS / LOCAL ARCHIVE</span></a><div class="topbar-tools"><form class="search-form" role="search" data-search-form><label class="sr-only" for="course-search">Search course content</label><input id="course-search" type="search" placeholder="Search lessons" autocomplete="off" data-search-input><kbd>/</kbd><div class="search-results" data-search-results hidden></div></form><a class="topbar-link" href="${escapeHtml(relativeHref(pageRel, "flashcards.html"))}">Flashcards</a><span class="archive-count">${model.screens.length} screens</span></div></div></header><div class="nav-scrim" data-nav-close></div>`;
+  return `<header class="topbar"><div class="topbar-inner"><button class="nav-toggle" type="button" data-nav-toggle aria-controls="library-nav" aria-expanded="false"><span></span><span></span><span></span><span class="sr-only">Open course navigation</span></button><a class="wordmark" href="${escapeHtml(home)}"><span class="wordmark-code">CCDV-F</span><span class="wordmark-label">FOUNDATIONS / LOCAL ARCHIVE</span></a><div class="topbar-tools"><form class="search-form" role="search" data-search-form><label class="sr-only" for="course-search">Search course content</label><input id="course-search" type="search" placeholder="Search lessons" autocomplete="off" data-search-input><kbd>/</kbd><div class="search-results" data-search-results hidden></div></form><a class="topbar-link" href="${escapeHtml(relativeHref(pageRel, "exams.html"))}">Mock tests</a><a class="topbar-link" href="${escapeHtml(relativeHref(pageRel, "flashcards.html"))}">Flashcards</a><span class="archive-count">${model.screens.length} screens</span></div></div></header><div class="nav-scrim" data-nav-close></div>`;
 }
 
 function template(model, options) {
@@ -789,6 +790,24 @@ function flashcardsContent(model, data) {
   });
 }
 
+function prepareExamData() {
+  const bank = JSON.parse(read(examsPath));
+  if (bank.tests.length !== 3 || bank.questions.length !== 90) throw new Error("Expected three tests and 90 questions");
+  const ids = new Set();
+  for (const test of bank.tests) {
+    if (bank.questions.filter(q => q.test === test.id).length !== 30) throw new Error(`Test ${test.id} needs 30 questions`);
+  }
+  for (const q of bank.questions) {
+    if (ids.has(q.id) || q.options.length !== 4 || new Set(q.options).size !== 4 || !q.correct.length || q.correct.some(i => !Number.isInteger(i) || i < 0 || i > 3) || new Set(q.correct).size !== q.correct.length || !q.explanation) throw new Error(`Invalid question ${q.id}`);
+    ids.add(q.id);
+    const source = read(path.join(sourceDir, q.source.path));
+    if (!q.source.excerpt || !source.includes(q.source.excerpt)) throw new Error(`Source excerpt drift: ${q.id}`);
+    const page = read(path.join(outputDir, q.source.path.replace(/\.md$/, ".html")));
+    if (!page.includes(`id="${q.source.anchor}"`)) throw new Error(`Missing citation anchor: ${q.id}`);
+  }
+  return bank;
+}
+
 function writeOutput(model, data) {
   const preparedCards = prepareFlashcardData(data, model);
   fs.mkdirSync(path.join(outputDir, "assets"), { recursive: true });
@@ -803,6 +822,8 @@ function writeOutput(model, data) {
       fs.writeFileSync(path.join(outputDir, section.pageRel), sectionContent(model, module, section));
     }
   }
+  const exams = prepareExamData();
+  fs.writeFileSync(path.join(outputDir, "assets", "exams-data.js"), `window.EXAM_DATA = ${JSON.stringify(exams)};\n`);
   const siteData = {
     modules: model.modules.map((module) => ({
       id: module.id,
@@ -847,7 +868,7 @@ function assertBalanced(text, open, close, label) {
 
 function verify(model, data) {
   const htmlFiles = walkFiles(outputDir, ".html");
-  const expectedHtml = 1 + 1 + 1 + model.modules.length + model.modules.reduce((sum, module) => sum + module.sections.length, 0);
+  const expectedHtml = 1 + 1 + 1 + 1 + model.modules.length + model.modules.reduce((sum, module) => sum + module.sections.length, 0);
   if (htmlFiles.length !== expectedHtml) throw new Error(`Expected ${expectedHtml} HTML pages, found ${htmlFiles.length}`);
   if (model.modules.length !== 5) throw new Error(`Expected 5 modules, found ${model.modules.length}`);
   const sectionCount = model.modules.reduce((sum, module) => sum + module.sections.length, 0);

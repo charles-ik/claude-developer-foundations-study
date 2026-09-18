@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#172b2a">
+  <meta name="description" content="90 source-backed practice questions for Claude Developer Foundations, with mock tests, a review queue and an optional AI tutor.">
+  <title>Practice studio · CCDV-F Foundations</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23172b2a'/%3E%3Ctext x='8' y='29' font-size='28' fill='%23e8bc75'%3EF%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/exams.css">
+  <script src="assets/exams-data.js" defer></script>
+  <script src="assets/exams.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#workspace">Skip to practice</a>
+<aside class="rail">
+  <a class="brand" href="index.html"><span class="brand-mark">f.</span><span>FOUNDATIONS<small>DEVELOPER STUDY LIBRARY</small></span></a>
+  <div class="rail-label">YOUR WORKSPACE</div>
+  <nav aria-label="Practice navigation">
+    <button data-action="home" class="rail-link active">◈ <span>Practice studio</span></button>
+    <button data-action="review" class="rail-link">⚑ <span>Review queue</span><span id="review-count" class="count">0</span></button>
+    <a class="rail-link" href="flashcards.html">◇ <span>Flashcards</span></a>
+    <a class="rail-link" href="index.html">▤ <span>Course library</span></a>
+    <a class="rail-link" href="exam-guide.html">↗ <span>Exam blueprint</span></a>
+  </nav>
+  <div class="rail-bottom"><span class="source-dot"></span> Grounded in your course<p>Five modules. Every answer linked<br>back to the archived lesson.</p><button data-action="settings" class="settings-button">⚙ &nbsp; AI tutor settings</button></div>
+</aside>
+<div class="page">
+  <header class="masthead"><span>CCDV-F <span class="muted">/</span> PREPARATION</span><span class="local-badge">● &nbsp; Saved on this browser</span></header>
+  <p id="storage-warning" role="status" hidden>Browser storage is unavailable. Your progress will last only until this page closes.</p>
+  <main id="workspace" tabindex="-1"></main>
+  <footer>Unofficial, course-based practice · 30-question mock sets, not official exam papers. <a href="exam-guide.html">See the supplied exam guide.</a></footer>
+</div>
+<dialog id="settings">
+  <form id="settings-form">
+    <div class="section-heading"><span class="eyebrow">OPTIONAL AI TUTOR</span><button type="button" data-action="close-settings" aria-label="Close settings" class="icon-button">×</button></div>
+    <h2>A little help, on your terms.</h2>
+    <p>Use Claude through OpenRouter, OpenAI, or Gemini. Questions and scoring work without AI.</p>
+    <label>Provider<select id="provider"><option value="openrouter">OpenRouter · Claude and other models</option><option value="openai">OpenAI API</option><option value="gemini">Google Gemini API</option></select></label>
+    <label>Model ID<input id="model" required maxlength="160" autocomplete="off" placeholder="Your provider’s model ID"></label>
+    <label>API key <span class="muted">optional when configured locally</span><input id="api-key" type="password" maxlength="512" autocomplete="off" placeholder="Paste a key for this tab only"></label>
+    <p id="connection-status" class="notice"></p>
+    <p class="small">Keys entered here stay in this tab’s memory and are sent through the local server to the selected provider. Only the current question, your selection, your tutor request, and the cited lesson excerpt are sent. Each request may incur API charges.</p>
+    <div class="button-row"><button type="submit" class="primary">Apply settings</button><button type="button" data-action="forget-key">Forget entered keys</button></div>
+  <button type="button" class="quiet danger" data-action="reset-progress" style="margin-top:20px;font-size:11px">Reset study progress on this browser</button>
+  </form>
+</dialog>
+<dialog id="confirmation" aria-labelledby="confirmation-title"><h2 id="confirmation-title">Before you continue</h2><p id="confirmation-message"></p><div class="button-row"><button data-action="confirm-cancel">Go back</button><button class="primary" data-action="confirm-run">Continue</button></div></dialog>
+<noscript><p>Enable JavaScript to use the practice studio. The course library remains readable without it.</p></noscript>
+</body>
+</html>

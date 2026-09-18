@@ -1,0 +1,2107 @@
+{
+  "version": 1,
+  "tests": [
+    {
+      "id": 1,
+      "title": "Build the foundations",
+      "description": "Core decisions, applied to everyday engineering."
+    },
+    {
+      "id": 2,
+      "title": "Find the failure",
+      "description": "Diagnose broken assumptions and choose a repair."
+    },
+    {
+      "id": 3,
+      "title": "Make the judgment",
+      "description": "Tradeoffs, production scenarios, and safer releases."
+    }
+  ],
+  "questions": [
+    {
+      "id": "t1-q01",
+      "test": 1,
+      "module": 1,
+      "topic": "Token budgets",
+      "prompt": "A cost estimate counts only the words in the user prompt. What should the developer measure instead?",
+      "options": [
+        "Tokens across the prompt, history, tool definitions, tool results, and generated response",
+        "Characters in the final answer only",
+        "The number of HTTP requests, regardless of content",
+        "Words in the system prompt only"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The API meters tokens across the complete request and response. Word counts and request counts alone omit major sources of usage.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Tokens: the unit of input, output, and cost",
+        "anchor": "tokens-the-unit-of-input-output-and-cost",
+        "excerpt": "Claude does not read characters or words directly. It reads tokens, and the characters-per-token average depends on the tokenizer of the model at hand and differs between model generations. Treat any chars-per-token rule of thumb as model-dependent and confirm current tokenizer behavior at build time. Everything the model processes is counted in tokens: your prompt, the conversation history, tool definitions, tool results, and the response the model generates. Tokens are the unit of both pricing and budget, so when you estimate what a feature costs or whether an input fits, you are counting tokens, not words. A useful habit is to think in tokens, since that is the unit the API bills in and the context window measures."
+      }
+    },
+    {
+      "id": "t1-q02",
+      "test": 1,
+      "module": 1,
+      "topic": "Context limits",
+      "prompt": "A long-running support session exceeds its model context budget. Which application change addresses the cause?",
+      "options": [
+        "Assume the window expands for long conversations",
+        "Trim or summarize accumulated history before the next call",
+        "Increase sampling temperature",
+        "Retry the identical oversized input indefinitely"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The window is a fixed token budget shared by input and output. The application must manage the accumulated history.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "The context window: a fixed budget",
+        "anchor": "the-context-window-a-fixed-budget",
+        "excerpt": "The context window is the total number of tokens the model can take in for a single request. It holds everything at once: the system prompt, the full conversation so far, any documents you inject, every tool result, and the model output. It is a fixed budget with two distinct edge behaviors. A request whose input is already larger than the window is rejected with a validation error before generation begins. A request that fits on input can still reach the ceiling during generation. Current models then stop and return the output generated so far with a model_context_window_exceeded stop reason rather than raising an error. Either way, keeping a long session running requires the application to trim or summarize history before each call. In development, the window rarely fills because test inputs are short. In production, on the other hand, longer inputs and more turns fill the window faster. This is the failure Module 2 explores in detail."
+      }
+    },
+    {
+      "id": "t1-q03",
+      "test": 1,
+      "module": 1,
+      "topic": "Testing variable output",
+      "prompt": "A regression test fails because two correct answers use different wording. What is the best repair?",
+      "options": [
+        "Retry until the expected wording appears and count that as success",
+        "Remove all output tests",
+        "Test required properties and use an eval when meaning matters",
+        "Require one exact sentence for every open-ended answer"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Non-determinism makes exact prose comparison brittle. Assert structure or required properties and grade meaning with an appropriate eval.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Non-determinism: what it means for testing and evals",
+        "anchor": "non-determinism-what-it-means-for-testing-and-evals",
+        "excerpt": "Non-determinism is the primary consequence of sampling: identical inputs do not guarantee identical outputs. That changes how you test a Claude feature. A test that asserts the exact text of a response will be inconsistent, because the model can express the same correct answer many ways. Instead, assert on the property that must hold: a required field is present, a value is in range, the structure parses. When you need to judge meaning rather than structure, use an eval with a model-graded judge. This is why the course treats evals as the standard for knowing a feature is correct, and why Module 3 builds that capability."
+      }
+    },
+    {
+      "id": "t1-q04",
+      "test": 1,
+      "module": 1,
+      "topic": "Model and reasoning choices",
+      "prompt": "A simple label lookup meets the quality bar, but every call uses expensive reasoning. What should be evaluated first?",
+      "options": [
+        "Whether every lookup can use the highest effort",
+        "Whether a model name automatically fixes reasoning depth",
+        "Whether explanations should be longer to justify the cost",
+        "Whether that task benefits from reasoning at all"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Reasoning and model selection are separate per-call decisions. Reasoning earns its cost when it changes the answer on a difficult task.",
+      "source": {
+        "path": "01-mso-foundations/03-models-reasoning.md",
+        "heading": "Reasoning modes are a separate setting from model choice",
+        "anchor": "reasoning-modes-are-a-separate-setting-from-model-choice",
+        "excerpt": "Choosing which model to run is one decision. Whether the model reasons before answering is a separate decision you make per call. On current models the reasoning mode is adaptive thinking: the model decides when and how much to think, and you tune depth with an effort setting rather than a fixed token budget (the older budget_tokens control is deprecated and, on the newest model generations, returns a 400 error). Thinking content is omitted from responses by default on the newest models. Request summarized display when you need to show it. Reasoning earns its cost on hard, multi-step problems and is wasted on lookups and classification. The key point for this module is that the two levers compose: model choice picks the family member, while the reasoning mode is configured per request. Per-model defaults differ (some of the newest models think adaptively by default or always), so confirm the current thinking defaults for your model at build time."
+      }
+    },
+    {
+      "id": "t1-q05",
+      "test": 1,
+      "module": 1,
+      "topic": "Few-shot prompting",
+      "prompt": "A model repeatedly misses a required casing convention despite a longer instruction. What is a focused next step?",
+      "options": [
+        "Add one or two correct examples and evaluate the result",
+        "Add a dozen unrelated demonstrations",
+        "Assume examples retrain the model permanently",
+        "Remove the output constraint"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Examples can make a structure or casing requirement concrete. Add the smallest prompt change that reliably fixes the failure.",
+      "source": {
+        "path": "01-mso-foundations/04-prompting-modes.md",
+        "heading": "The cost and quality trade-off",
+        "anchor": "the-cost-and-quality-trade-off",
+        "excerpt": "Each example you add costs tokens on every call and consumes context budget, so the choice trades quality against cost. Reach for zero-shot when the task is simple and the output shape is obvious. Move to one-shot or multi-shot when the output has a specific structure, casing, or edge case that a description keeps missing. Often one or two correct examples usually fix the issue faster than another paragraph of instructions. The general discipline, which Module 2 reinforces, is to add the smallest amount of prompt that produces a reliable result."
+      }
+    },
+    {
+      "id": "t1-q06",
+      "test": 1,
+      "module": 2,
+      "topic": "Prompt failure diagnosis",
+      "prompt": "The meaning is correct, but untested inputs still produce output your JSON parser cannot handle. What escalation does the course recommend?",
+      "options": [
+        "Increase the number of unrelated tools",
+        "Move output control into schema-constrained structured outputs",
+        "Keep rephrasing the same natural-language request indefinitely",
+        "Treat malformed output as a valid empty record"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Prompt wording alone is insufficient when parser failures persist. Structured outputs constrain the final response against a schema; application handling still matters.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "1. When a prompt fails, the failure type tells you which technique is missing.",
+        "anchor": "1-when-a-prompt-fails-the-failure-type-tells-you-which-technique-is-missing",
+        "excerpt": "Output in the wrong shape points to a missing output constraint, drift across turns points to an underspecified system prompt, and a hallucinated structure points to the absence of few-shot examples. The instinct to reword the instruction and try again rarely works, because none of those failures are phrasing problems. Diagnose the failure type first, then add the technique that addresses it. When prompt-level instructions are not enough because untested inputs still break the parser, move output control into the API with structured outputs: JSON outputs constrain the final response against a schema, and strict tool use validates the arguments Claude passes to your tools, at the cost of first-call compilation latency and added input tokens."
+      }
+    },
+    {
+      "id": "t1-q07",
+      "test": 1,
+      "module": 2,
+      "topic": "Thinking blocks",
+      "prompt": "An agent edits returned thinking blocks before sending them back, and the next request fails. What should change?",
+      "options": [
+        "Delete tool-result IDs instead",
+        "Always raise reasoning effort",
+        "Preserve the thinking blocks unchanged when returning them",
+        "Convert every thinking block into a new user instruction"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The archived recap explicitly requires thinking blocks to return unchanged. Raising effort does not repair a malformed conversation.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "2. Match the reasoning depth to the task before you tune the prompt.",
+        "anchor": "2-match-the-reasoning-depth-to-the-task-before-you-tune-the-prompt",
+        "excerpt": "Enable reasoning only where a reasoning pass changes the answer and calibrate the effort setting to the problem rather than raising it on every call. Remember that thinking blocks return to the API unchanged or the next request fails. Choosing which model to run, as distinct from whether to enable reasoning, is taught in the MSO Foundations module that precedes this one."
+      }
+    },
+    {
+      "id": "t1-q08",
+      "test": 1,
+      "module": 2,
+      "topic": "Safe streaming",
+      "prompt": "A network drop leaves half a tool-use block in conversation history. What is the correct recovery?",
+      "options": [
+        "Execute the partial tool arguments immediately",
+        "Mark the turn complete because the socket closed",
+        "Change the tool schema to accept partial JSON",
+        "Discard the partial turn and retry without committing it"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A closed connection is not message_stop. Only completed blocks can be acted on, and only a completed message belongs in history.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "3. A stream ending is not a message completing.",
+        "anchor": "3-a-stream-ending-is-not-a-message-completing",
+        "excerpt": "Streaming buys perceived latency at the cost of assembling the response yourself from partial events. Act on a block only after it closes, commit a turn to history only after message_stop, and on an interrupted stream discard the partial turn and retry. The failure mode to recognize is a tool-use error on a retry that traces back to a half-built block from a dropped stream, not to the schema."
+      }
+    },
+    {
+      "id": "t1-q09",
+      "test": 1,
+      "module": 2,
+      "topic": "Tool descriptions",
+      "prompt": "Two tools both say “use this to find information” and the assistant often chooses the wrong one. What is the targeted fix?",
+      "options": [
+        "State the purpose and exclusion conditions in each description",
+        "Rename both tools to search",
+        "Increase the maximum output length",
+        "Add more tools with the same description"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Tool choice depends on matching the request to tool descriptions. Explicit “when not to use” boundaries help distinguish overlapping capabilities.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "4. Every wrong-tool selection traces back to the schema, and most of the time to the description.",
+        "anchor": "4-every-wrong-tool-selection-traces-back-to-the-schema-and-most-of-the-time-to-the-description",
+        "excerpt": "Claude picks a tool by reading the description field and matching it against the user's request, which means two tools that both say \"use this to find information\" are indistinguishable from Claude's side even when the input schemas look nothing alike. The one sentence that resolves most wrong-tool bugs is the exclusion condition: a line in every description naming when not to call the tool, written into the schema at design time rather than after the first wrong call shows up in a log. When someone else has already written the tools, MCP lets you connect a maintained server instead of authoring every schema by hand, but each connected server adds its tool definitions to the context window whether the tools are used, so connect deliberately and control loading cost."
+      }
+    },
+    {
+      "id": "t1-q10",
+      "test": 1,
+      "module": 2,
+      "topic": "Context engineering",
+      "prompt": "A session survives 50 fixture-based turns but fails after 8 production turns. Production tool output is much larger. Where should investigation begin?",
+      "options": [
+        "Whether the network retry interval is too short",
+        "The accumulated context budget and real tool-output sizes",
+        "The assumption that the model forgets its schema on a timer",
+        "Whether the output schema is too restrictive"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The course’s production failure pattern is larger tool output consuming the fixed window. Measure real inputs before blaming tool selection.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "5. Context is a fixed budget, and tool outputs spend it faster than anything else in the loop.",
+        "anchor": "5-context-is-a-fixed-budget-and-tool-outputs-spend-it-faster-than-anything-else-in-the-loop",
+        "excerpt": "Production tool outputs run three to five times longer than the fixtures used in development, so a session that holds together cleanly across fifty turns in testing can hit the ceiling at turn eight once it ships. Pruning, compaction, and subagent handoffs each buy back headroom in different ways, and the one to apply depends on whether you still need the earlier state. When tool selection starts degrading after a fixed number of turns, the window is the first place to look, not the schema."
+      }
+    },
+    {
+      "id": "t1-q11",
+      "test": 1,
+      "module": 2,
+      "topic": "Workflows and agents",
+      "prompt": "An invoice pipeline has a known, fixed sequence of steps. Which approach does the course favor?",
+      "options": [
+        "A manager that spawns many agents for each fixed step",
+        "A loop with no termination condition",
+        "A deterministic workflow with the steps encoded",
+        "An open-ended agent for every invoice"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A workflow is appropriate when the path can be written explicitly. An agent is appropriate when the goal and tools are known but the path is not.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "6. The workflow-or-agent decision sets the cost of everything that follows, and human checkpoints belong in the design.",
+        "anchor": "6-the-workflow-or-agent-decision-sets-the-cost-of-everything-that-follows-and-human-checkpoints-belong-in-the-design",
+        "excerpt": "A workflow is the right call when you can write the exact steps in code, and an agent is the right call when you can specify the goal and the tools but not the path between them. Choosing wrong in either direction only surfaces in production: agents where workflows would do add context cost and behavior that lives in transcripts, and workflows where agents are needed break the first time an input falls outside the path. If a tool can take an irreversible action, the human-in-the-loop checkpoint goes in before the loop is wired, not after the first write reaches a customer environment."
+      }
+    },
+    {
+      "id": "t1-q12",
+      "test": 1,
+      "module": 2,
+      "topic": "Memory scope",
+      "prompt": "A user returns in separate short sessions and expects prior task state to survive. What memory choice fits?",
+      "options": [
+        "Only the current request’s in-context history",
+        "No stored state while promising continuity",
+        "A larger output token limit",
+        "External storage for cross-session state"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "In-context history does not by itself persist across separate sessions. External storage supports that requirement, with a latency tradeoff.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "7. Memory scope is decided by the shape of the session, not by what is easiest to implement.",
+        "anchor": "7-memory-scope-is-decided-by-the-shape-of-the-session-not-by-what-is-easiest-to-implement",
+        "excerpt": "In-context memory is the simplest pattern to write, which is why it is also the one that fails earliest when production sessions turn out to be shorter and more numerous than the long continuous sessions used in development. External storage adds latency but the state survives across sessions, summarized memory cuts cost but loses anything the summarizer prompt did not preserve, and stateless is correct for jobs that complete and close. The refactor from in-context to external under production pressure takes about an hour, and making the same choice deliberately at design time takes about twenty minutes. Carrying repeatable instructions across tasks is a separate problem from carrying state, and the pattern for it is a Skill: a markdown file Claude loads on demand by matching its description, rather than instructions injected into every session."
+      }
+    },
+    {
+      "id": "t1-q13",
+      "test": 1,
+      "module": 2,
+      "topic": "Ingestion and batches",
+      "prompt": "A nightly pipeline processes many documents and no user waits for individual results. Which API pattern matches the workload?",
+      "options": [
+        "Message Batches for offline processing",
+        "A synchronous loop described as batching",
+        "Streaming each result to an absent user",
+        "Real-time asynchronous calls chosen solely to avoid blocking"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The source distinguishes the Message Batches API from making synchronous calls in a loop. Offline workloads can exchange turnaround time for lower per-token cost.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "8. Calculate the cost of a multimodal input before you write the ingestion code and match the API to the workload.",
+        "anchor": "8-calculate-the-cost-of-a-multimodal-input-before-you-write-the-ingestion-code-and-match-the-api-to-the-workload",
+        "excerpt": "An image costs ⌈width / 28⌉ × ⌈height / 28⌉ visual tokens, and the per-image ceiling differs by model tier. A high-resolution original on the newest models can cost many times what a thumbnail costs in your test set, so the formula needs to run against the largest input you expect in production rather than the inputs you have on hand. Inline base64 fits one-off images, the Files API fits assets reused across requests, and the Message Batches API handles offline work at lower per-token cost in exchange for non-deterministic latency. The mistake worth avoiding is calling the synchronous API in a loop and treating that as batching."
+      }
+    },
+    {
+      "id": "t1-q14",
+      "test": 1,
+      "module": 2,
+      "topic": "Tool-result protocol",
+      "prompt": "An assistant requests two tools. Which TWO requirements apply to their results?",
+      "options": [
+        "Return one successful result and omit the other request",
+        "Preserve each original tool_use ID in its matching tool_result",
+        "Invent fresh result IDs to prevent ID reuse",
+        "Answer every tool_use with a tool_result in the immediately following user turn"
+      ],
+      "correct": [
+        1,
+        3
+      ],
+      "explanation": "Every tool_use needs its own matching tool_result, with the original ID preserved, in the immediately following user turn. Omitting a result or inventing a new ID breaks that contract.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Tool_use_block",
+        "anchor": "tooluseblock",
+        "excerpt": "A content block returned by the assistant when Claude wants to call a function. Contains the tool name, a unique ID, and the input arguments Claude wants passed to your code. Every tool_use block must be answered by a matching tool_result block in the immediately following user turn, with the same ID preserved exactly."
+      }
+    },
+    {
+      "id": "t1-q15",
+      "test": 1,
+      "module": 2,
+      "topic": "SDK responsibilities",
+      "prompt": "A product needs the managed iteration, tool execution, and termination loop used by Claude Code. Which SDK role fits?",
+      "options": [
+        "A raw Messages API call with a larger output budget",
+        "A batch of unrelated API requests without loop state",
+        "The Claude Agent SDK’s managed agent runtime",
+        "The thin Anthropic API wrapper alone as an automatic agent runtime"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The course distinguishes the Agent SDK’s managed loop from the Anthropic SDK, which wraps API calls without running an agent loop.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Claude Agent SDK",
+        "anchor": "claude-agent-sdk",
+        "excerpt": "A managed agent runtime distributed as @anthropic-ai/claude-agent-sdk (Typescript) / claude-agent-sdk (Python). It gives a partner programmatic access to the same agent loop that powers Claude Code: iteration, tool execution, observation, termination, so the partner can embed an agent inside their own product instead of running Claude Code in a terminal. Distinct from the Anthropic SDK, which is a thin convenience wrapper over the API and does not run an agent loop."
+      }
+    },
+    {
+      "id": "t1-q16",
+      "test": 1,
+      "module": 3,
+      "topic": "Permissions",
+      "prompt": "A team enables bypass mode on a workstation connected to a live codebase to reduce interruptions. What principle should guide the mode?",
+      "options": [
+        "The developer’s preference for fewer clicks alone",
+        "The maximum possible tool count",
+        "The frequency of successful tool calls in a demo",
+        "The risk of the work and environment, with deny rules for protected paths"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Permission mode controls checkpoints and must reflect risk. A deny rule addresses paths that must not be touched.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Permission mode is a risk decision, not a speed decision.",
+        "anchor": "permission-mode-is-a-risk-decision-not-a-speed-decision",
+        "excerpt": "Claude Code gives you modes ranging from prompt-before-everything to prompt-for-nothing. Permission mode should match the risk profile of the work and environment, not the preference for fewer prompts. A bypass mode on a developer workstation against a live codebase removes every checkpoint between the agent and your files. A deny rule on the path that must not be touched, set at the project or enterprise level, covers the gap that a mode alone does not.\n\n2"
+      }
+    },
+    {
+      "id": "t1-q17",
+      "test": 1,
+      "module": 3,
+      "topic": "Durable project context",
+      "prompt": "A project puts universal rules, path-specific advice, enforced checks, and exploration transcripts into one huge CLAUDE.md. What is the course correction?",
+      "options": [
+        "Use project memory, scoped rules, hooks, and subagents for their respective concerns",
+        "Keep adding text because size never dilutes guidance",
+        "Replace deterministic checks with a reminder paragraph",
+        "Load every exploration transcript into every session"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The four mechanisms address different needs. Overloading CLAUDE.md makes critical guidance harder to maintain and easier to overlook.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Durable context requires the right mechanism for each concern.",
+        "anchor": "durable-context-requires-the-right-mechanism-for-each-concern",
+        "excerpt": "CLAUDE.md is the session-persistent project memory, but it dilutes with size. Rules files scope guidance to where it applies. Hooks enforce guardrails deterministically, not probabilistically. Subagents keep exploration work out of the main context. These four mechanisms each solve a different problem, so forcing all of them into CLAUDE.md produces a single file that is harder to maintain and easier to ignore.\n\n5"
+      }
+    },
+    {
+      "id": "t1-q18",
+      "test": 1,
+      "module": 3,
+      "topic": "Portable skills",
+      "prompt": "A Skill assumes a particular local terminal and is moved into a different runtime. What should its author review?",
+      "options": [
+        "Whether subagents implicitly inherit all Skills",
+        "Runtime loading and sandbox assumptions, plus the Skill’s scope",
+        "Only the capitalization of SKILL.md",
+        "Whether every user has the author’s home directory"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A portable file still has runtime-dependent loading and sandbox behavior. The lesson calls for clear scope and freedom from local-environment assumptions.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "A skill is portable, but “runs everywhere” is something you design for.",
+        "anchor": "a-skill-is-portable-but-runs-everywhere-is-something-you-design-for",
+        "excerpt": "The same SKILL.md can run in Claude Code, on the Messages API, and through the Agent SDK, but each one loads and sandboxes it differently: filesystem discovery in Claude Code, beta headers and a code execution container on the API, and settingSources on the SDK. A skill scoped to a clear description and free of local-environment assumptions ports cleanly; one that assumes the terminal it was written in does not. In every runtime, subagents start clean: they do not automatically preload skills.\n\n4"
+      }
+    },
+    {
+      "id": "t1-q19",
+      "test": 1,
+      "module": 3,
+      "topic": "MCP transport and scope",
+      "prompt": "Several developers must access one centrally hosted MCP service. Which combination matches the lesson?",
+      "options": [
+        "Local personal scope as the sole team distribution mechanism",
+        "HTTP transport with undocumented personal configuration only",
+        "HTTP transport with project or enterprise scope",
+        "stdio transport as though the remote service were a local subprocess"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The course distinguishes remote/shared HTTP transport from local stdio, and team configuration scope from personal local scope.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Transport and scope are independent decisions with dependent consequences.",
+        "anchor": "transport-and-scope-are-independent-decisions-with-dependent-consequences",
+        "excerpt": "stdio is for servers that run on your machine. HTTP is for anything hosted remotely or accessed by multiple developers. Local scope keeps a server personal; project scope shares it with the repo via .mcp.json. The combination must match the deployment intent: a shared team server requires HTTP transport and project or enterprise scope. A stdio server in .mcp.json is a configuration that looks shareable but is not.\n\n7"
+      }
+    },
+    {
+      "id": "t1-q20",
+      "test": 1,
+      "module": 3,
+      "topic": "Enterprise integration",
+      "prompt": "Which TWO identity and credential pairings match the enterprise integration recap?",
+      "options": [
+        "A shared service secret identifies each individual end user",
+        "Service credentials are supplied through environment variables",
+        "A service that acts on behalf of a user uses OAuth",
+        "User identity is replaced by a project-wide API key"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "The recap associates OAuth with user-identity services and environment variables with service credentials. A shared service credential does not establish the identity of an individual user.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Enterprise integration requires identifying the security requirements before deployment.",
+        "anchor": "enterprise-integration-requires-identifying-the-security-requirements-before-deployment",
+        "excerpt": "A regulated customer asks about identity, data residency, access logging, and configuration control. The answers come from OAuth for user-identity services, environment variables for service credentials, PostToolUse hooks for audit logging, and enterprise managed settings for configuration lock. None of these is hard to implement, but all of them are hard to retrofit after a production deployment has failed a security review."
+      }
+    },
+    {
+      "id": "t1-q21",
+      "test": 1,
+      "module": 4,
+      "topic": "Evaluation design",
+      "prompt": "A feature is declared done because one demonstration looks convincing. What establishes a repeatable quality standard?",
+      "options": [
+        "A fixed set of input cases, expected behavior, and appropriate grading",
+        "The most confident-sounding output",
+        "Only the model vendor’s marketing description",
+        "A different informal example on every release"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "An eval turns an impression into a score on fixed cases. Define expected behavior while design decisions can still change.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Set the standard before you build it.",
+        "anchor": "set-the-standard-before-you-build-it",
+        "excerpt": "An eval turns \"done\" from a feeling into a score on a fixed set of cases. The grading method must match the output: exact match when there is one correct form, a code check for structured output, and a judge for open-ended quality, which you calibrate against human-labelled cases before you trust it. You write the eval first because identifying the expected behavior forces you to define success while the design can still change.\n\n2"
+      }
+    },
+    {
+      "id": "t1-q22",
+      "test": 1,
+      "module": 4,
+      "topic": "Tests and traces",
+      "prompt": "Retrieval and generation pass unit tests, but retrieval output is handed to the model incorrectly. What test targets the failure?",
+      "options": [
+        "An exact-text test unrelated to retrieval",
+        "An integration test of the handoff",
+        "Another isolated test of the already-passing parser only",
+        "A screenshot of a success message"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Silent failures often occur at a seam between individually passing components. Test their actual handoff.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Match the test to the failure, and trace so you know where it happened.",
+        "anchor": "match-the-test-to-the-failure-and-trace-so-you-know-where-it-happened",
+        "excerpt": "Unit, functional, integration, and end-to-end tests each catch a different break, and most silent failures hide at the integration seam where two passing components hand off. A trace shows which step produced the bad result, which turns a day of investigation into a short fix. The same instinct drives the retrieval choice: fetch once for single-fact lookups, search across iterations when the question is genuinely multi-step.\n\n3"
+      }
+    },
+    {
+      "id": "t1-q23",
+      "test": 1,
+      "module": 4,
+      "topic": "Failure handling",
+      "prompt": "Requests receive a temporary rate-limit error. Which TWO recovery controls does the course recommend?",
+      "options": [
+        "Retry immediately as long as an error is returned",
+        "Use exponential backoff between attempts",
+        "Set a cap and a retry budget",
+        "Return an empty success so the model can continue"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Retriable failures get exponential backoff with a cap and retry budget. Immediate unbounded retries can deepen rate limits, while an empty success hides the failure.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Sort every failure, then handle them individually.",
+        "anchor": "sort-every-failure-then-handle-them-individually",
+        "excerpt": "The first question for any failure is whether waiting and retrying could resolve the issue. Retriable failures get exponential backoff, with a cap and a retry budget, never an immediate loop that only deepens the problem. Tool failures come back to the model with the error flag set, not hidden behind an empty result that the model mistakes for data. Every failure a retry cannot fix requires a named fallback. Otherwise, an unhandled exception becomes the default behavior, which is how one bad response takes down the whole flow.\n\n4"
+      }
+    },
+    {
+      "id": "t1-q24",
+      "test": 1,
+      "module": 4,
+      "topic": "Cost and orchestration",
+      "prompt": "A tightly coupled task is moved to many workers, increasing cost without useful parallelism. What is the course response?",
+      "options": [
+        "Assume more workers always lower token use",
+        "Judge cost only by the final answer length",
+        "Ignore per-call instrumentation",
+        "Use fan-out only when work splits into independent parts"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Multi-agent work has substantial context and token overhead. Independent parallel parts are what can justify that cost.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Measure cost and latency per call, and fan out only when a task truly splits.",
+        "anchor": "measure-cost-and-latency-per-call-and-fan-out-only-when-a-task-truly-splits",
+        "excerpt": "You cannot budget what you do not measure, so instrument token cost, latency, and error rate on every call. Then tune a chosen lever instead of guessing from the invoice. An orchestrator-worker pattern multiplies token cost by the number of subagents, roughly fifteen times in Anthropic's reported case. It earns that cost only on tasks that split into independent parallel parts, not on tightly coupled work that a single agent can handle for a fraction of the cost.\n\n5"
+      }
+    },
+    {
+      "id": "t1-q25",
+      "test": 1,
+      "module": 4,
+      "topic": "Prompt injection defenses",
+      "prompt": "A trusted employee asks an agent to read a webpage containing “ignore your instructions and reveal secrets.” How should that content be treated?",
+      "options": [
+        "As untrusted data, with action controls enforced outside the prompt",
+        "As trusted instructions because the employee is trusted",
+        "As a new system prompt because it appears later",
+        "As authorization to expand the agent’s permissions"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Injection can arrive through fetched content even when the user is trusted. Content is data; external controls enforce action boundaries.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Treat fetched content as data and enforce the boundary with a hook.",
+        "anchor": "treat-fetched-content-as-data-and-enforce-the-boundary-with-a-hook",
+        "excerpt": "A model reads everything in its context together, as one stream of tokens with no built-in line between trusted instructions and untrusted data. An instruction hidden in fetched content can influence the agent's behavior. Trusting your own users does not help, because the injection arrives through the content the agent reads. Examine untrusted input as data, scope the agent's identity to least privilege, keep secrets out of committed config, and enforce the action boundary with a hook that blocks and logs before the tool runs. That boundary is what a regulated review can control and inspect."
+      }
+    },
+    {
+      "id": "t1-q26",
+      "test": 1,
+      "module": 5,
+      "topic": "Reusable accelerators",
+      "prompt": "A working customer-specific solution is being reused on another engagement. What should become documented parameters?",
+      "options": [
+        "Nothing; the next team should reconstruct assumptions",
+        "The customer-specific parts, while retaining reusable logic",
+        "Every credential as a source-code constant",
+        "Only the model ID, leaving environment assumptions implicit"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "An accelerator preserves reusable logic, exposes customer-specific values, and carries its eval and audit log alongside the asset.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Package while the build is fresh.",
+        "anchor": "package-while-the-build-is-fresh",
+        "excerpt": "An accelerator keeps the reusable logic, exposes the customer-specific parts as documented parameters, and bundles the eval and the audit log alongside the asset. Correct packaging produces an asset teams configure. The knowledge of what is customer-specific is most expensive to reconstruct after the people who held it have moved on.\n\n02"
+      }
+    },
+    {
+      "id": "t1-q27",
+      "test": 1,
+      "module": 5,
+      "topic": "Contribution readiness",
+      "prompt": "A contribution contains a large code dump with no example, test, or assumptions. What most directly improves reviewability?",
+      "options": [
+        "A promise that it worked on one private machine",
+        "More unrelated features",
+        "Focused code, a runnable example, a test, and documented assumptions",
+        "A longer marketing description only"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A maintainer needs evidence they can reproduce. The course also requires rights to contribute to be confirmed before technical review.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "A maintainer accepts what they can verify.",
+        "anchor": "a-maintainer-accepts-what-they-can-verify",
+        "excerpt": "Moving an asset into shared infrastructure means matching it to the channel built for its shape, then clearing the review bar: focused code, a runnable example, a test, and a statement of assumptions, with licensing rights confirmed before the technical review. A contribution a reviewer cannot verify sits at the back of the queue. Readiness moves a private asset into shared infrastructure others build on.\n\n03"
+      }
+    },
+    {
+      "id": "t1-q28",
+      "test": 1,
+      "module": 5,
+      "topic": "Versioning and rollback",
+      "prompt": "Production uses a moving model alias and behavior changes overnight without a code release. What reduces this risk?",
+      "options": [
+        "Assume aliases never change",
+        "Remove evaluation so releases are faster",
+        "Use only the model family nickname everywhere",
+        "Pin the specific model version and keep the prior version available"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A moving alias can adopt an upstream change implicitly. Pinning makes migration deliberate and retaining a prior version supports rollback.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Pin what ships.",
+        "anchor": "pin-what-ships",
+        "excerpt": "Choose the deployment platform based on the customer's cloud and compliance posture, then pin the specific model version rather than the moving alias and keep the prior version available. An alias is like asking for the current edition of a book: convenient, but the text can change. Pinning cites a fixed edition, so an upstream model change is something you adopt deliberately rather than something that arrives overnight with no rollback path.\n\n04"
+      }
+    },
+    {
+      "id": "t1-q29",
+      "test": 1,
+      "module": 5,
+      "topic": "Deployment placement",
+      "prompt": "A regulated customer rejects a low-cost platform because of compliance requirements. How should placement have been evaluated?",
+      "options": [
+        "Treat compliance as an early constraint and measure latency and total per-call cost",
+        "Choose solely by token price",
+        "Measure latency only from the developer’s home region",
+        "Assume every platform shares the same compliance posture"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The recap makes compliance a frequent pass-or-fail constraint and calls for customer-region latency and total per-call cost.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Measure the dimension that decides the placement.",
+        "anchor": "measure-the-dimension-that-decides-the-placement",
+        "excerpt": "A platform choice is defensible only when latency, compliance, and cost are measured: latency from the customer's region, compliance against their existing certification, and cost as the total per call rather than the token price alone. For regulated customers, compliance is usually pass-or-fail. Raising compliance as a constraint during scoping prevents it from rejecting the build later at contract review.\n\n05"
+      }
+    },
+    {
+      "id": "t1-q30",
+      "test": 1,
+      "module": 5,
+      "topic": "Trust boundaries",
+      "prompt": "An internal component forwards external content to a second component. Is the forwarded content automatically trusted?",
+      "options": [
+        "Yes; only the first component needs access controls",
+        "No; the receiving component must establish trust at its own boundary",
+        "Yes; trust carries over from the sender automatically",
+        "Yes; internal transport converts data into instructions"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Trust does not carry over from the component that sent the data. Fetched content remains data at the receiving boundary.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Mark every seam as a boundary.",
+        "anchor": "mark-every-seam-as-a-boundary",
+        "excerpt": "A multi-component application is only as contained as its most privileged seam. Scope each component to the minimum access its role requires and treat every point where data crosses as a trust boundary. Fetched content is treated as data, not instructions. Trust at a component boundary must be explicitly established. It does not carry over from the component that sent the data. When a seam cannot be secured, it goes to a human owner rather than being shipped."
+      }
+    },
+    {
+      "id": "t2-q01",
+      "test": 2,
+      "module": 1,
+      "topic": "Token budgets",
+      "prompt": "A tool-heavy assistant becomes expensive although user messages stay short. Which TWO inputs belong in the token investigation?",
+      "options": [
+        "Tool results carried into subsequent calls",
+        "Only the visible answer; tool content is free",
+        "Only user text; system instructions are outside the budget",
+        "Tool definitions supplied to the model"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Tool definitions and tool results both consume tokens. Short user messages do not imply a small request.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Tokens: the unit of input, output, and cost",
+        "anchor": "tokens-the-unit-of-input-output-and-cost",
+        "excerpt": "Claude does not read characters or words directly. It reads tokens, and the characters-per-token average depends on the tokenizer of the model at hand and differs between model generations. Treat any chars-per-token rule of thumb as model-dependent and confirm current tokenizer behavior at build time. Everything the model processes is counted in tokens: your prompt, the conversation history, tool definitions, tool results, and the response the model generates. Tokens are the unit of both pricing and budget, so when you estimate what a feature costs or whether an input fits, you are counting tokens, not words. A useful habit is to think in tokens, since that is the unit the API bills in and the context window measures."
+      }
+    },
+    {
+      "id": "t2-q02",
+      "test": 2,
+      "module": 1,
+      "topic": "Context limits",
+      "prompt": "A developer reserves the entire context window for documents. What has the estimate missed?",
+      "options": [
+        "System instructions, history, tool results, and room for model output",
+        "Only the space occupied by the final JSON field names",
+        "Nothing; output uses a separate unlimited window",
+        "Only the latency budget for retrieving the documents"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Injected documents share the window with the rest of the request and generated output; documents alone cannot consume the full budget safely.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "The context window: a fixed budget",
+        "anchor": "the-context-window-a-fixed-budget",
+        "excerpt": "The context window is the total number of tokens the model can take in for a single request. It holds everything at once: the system prompt, the full conversation so far, any documents you inject, every tool result, and the model output. It is a fixed budget with two distinct edge behaviors. A request whose input is already larger than the window is rejected with a validation error before generation begins. A request that fits on input can still reach the ceiling during generation. Current models then stop and return the output generated so far with a model_context_window_exceeded stop reason rather than raising an error. Either way, keeping a long session running requires the application to trim or summarize history before each call. In development, the window rarely fills because test inputs are short. In production, on the other hand, longer inputs and more turns fill the window faster. This is the failure Module 2 explores in detail."
+      }
+    },
+    {
+      "id": "t2-q03",
+      "test": 2,
+      "module": 1,
+      "topic": "Testing variable output",
+      "prompt": "Which TWO checks are appropriate for a structured extraction task whose prose can vary?",
+      "options": [
+        "Treat confident wording as proof of correctness",
+        "Verify required fields exist",
+        "Verify numeric values satisfy the required range",
+        "Require every whitespace character to match an earlier response"
+      ],
+      "correct": [
+        1,
+        2
+      ],
+      "explanation": "Field presence and value bounds test the required behavior without demanding identical wording. Confidence does not validate data.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Non-determinism: what it means for testing and evals",
+        "anchor": "non-determinism-what-it-means-for-testing-and-evals",
+        "excerpt": "Non-determinism is the primary consequence of sampling: identical inputs do not guarantee identical outputs. That changes how you test a Claude feature. A test that asserts the exact text of a response will be inconsistent, because the model can express the same correct answer many ways. Instead, assert on the property that must hold: a required field is present, a value is in range, the structure parses. When you need to judge meaning rather than structure, use an eval with a model-graded judge. This is why the course treats evals as the standard for knowing a feature is correct, and why Module 3 builds that capability."
+      }
+    },
+    {
+      "id": "t2-q04",
+      "test": 2,
+      "module": 1,
+      "topic": "Model and reasoning choices",
+      "prompt": "A teammate says selecting a model completely determines how much reasoning every request needs. What is the course distinction?",
+      "options": [
+        "Prompt examples automatically select a different model",
+        "Reasoning removes the need to measure latency",
+        "Model selection and reasoning configuration are separate decisions that compose",
+        "Reasoning is just another name for model selection"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The course distinguishes the family member from per-request reasoning controls and notes that model defaults must be checked.",
+      "source": {
+        "path": "01-mso-foundations/03-models-reasoning.md",
+        "heading": "Reasoning modes are a separate setting from model choice",
+        "anchor": "reasoning-modes-are-a-separate-setting-from-model-choice",
+        "excerpt": "Choosing which model to run is one decision. Whether the model reasons before answering is a separate decision you make per call. On current models the reasoning mode is adaptive thinking: the model decides when and how much to think, and you tune depth with an effort setting rather than a fixed token budget (the older budget_tokens control is deprecated and, on the newest model generations, returns a 400 error). Thinking content is omitted from responses by default on the newest models. Request summarized display when you need to show it. Reasoning earns its cost on hard, multi-step problems and is wasted on lookups and classification. The key point for this module is that the two levers compose: model choice picks the family member, while the reasoning mode is configured per request. Per-model defaults differ (some of the newest models think adaptively by default or always), so confirm the current thinking defaults for your model at build time."
+      }
+    },
+    {
+      "id": "t2-q05",
+      "test": 2,
+      "module": 1,
+      "topic": "Few-shot prompting",
+      "prompt": "A simple zero-shot classifier already meets its eval. What justifies adding many examples?",
+      "options": [
+        "The assumption that more examples are always free",
+        "The desire to consume the entire context window",
+        "The belief that zero-shot is never production-ready",
+        "A measured quality gap that those examples resolve"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Each example consumes tokens on every call. If zero-shot already meets the requirement, added examples need evidence of benefit.",
+      "source": {
+        "path": "01-mso-foundations/04-prompting-modes.md",
+        "heading": "The cost and quality trade-off",
+        "anchor": "the-cost-and-quality-trade-off",
+        "excerpt": "Each example you add costs tokens on every call and consumes context budget, so the choice trades quality against cost. Reach for zero-shot when the task is simple and the output shape is obvious. Move to one-shot or multi-shot when the output has a specific structure, casing, or edge case that a description keeps missing. Often one or two correct examples usually fix the issue faster than another paragraph of instructions. The general discipline, which Module 2 reinforces, is to add the smallest amount of prompt that produces a reliable result."
+      }
+    },
+    {
+      "id": "t2-q06",
+      "test": 2,
+      "module": 2,
+      "topic": "Prompt failure diagnosis",
+      "prompt": "The assistant’s behavior drifts over several turns. Which missing prompt element should be investigated first?",
+      "options": [
+        "A sufficiently specified system prompt",
+        "A stricter output schema as the sole behavioral control",
+        "A larger set of unrelated tool schemas",
+        "A higher output-token limit on every response"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The recap connects drift across turns with an underspecified system prompt. It separates this from output-shape failures and missing examples.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "1. When a prompt fails, the failure type tells you which technique is missing.",
+        "anchor": "1-when-a-prompt-fails-the-failure-type-tells-you-which-technique-is-missing",
+        "excerpt": "Output in the wrong shape points to a missing output constraint, drift across turns points to an underspecified system prompt, and a hallucinated structure points to the absence of few-shot examples. The instinct to reword the instruction and try again rarely works, because none of those failures are phrasing problems. Diagnose the failure type first, then add the technique that addresses it. When prompt-level instructions are not enough because untested inputs still break the parser, move output control into the API with structured outputs: JSON outputs constrain the final response against a schema, and strict tool use validates the arguments Claude passes to your tools, at the cost of first-call compilation latency and added input tokens."
+      }
+    },
+    {
+      "id": "t2-q07",
+      "test": 2,
+      "module": 2,
+      "topic": "Thinking blocks",
+      "prompt": "A team raises reasoning effort on every call after one difficult case fails. What is a better evaluation strategy?",
+      "options": [
+        "Choose reasoning depth solely from the monthly budget",
+        "Calibrate effort against the tasks that benefit from a reasoning pass",
+        "Assume the highest effort is cost-free",
+        "Raise prompt verbosity without measuring reasoning quality"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The course says to match reasoning depth to the problem. A hard case does not establish that every easy call needs the same effort.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "2. Match the reasoning depth to the task before you tune the prompt.",
+        "anchor": "2-match-the-reasoning-depth-to-the-task-before-you-tune-the-prompt",
+        "excerpt": "Enable reasoning only where a reasoning pass changes the answer and calibrate the effort setting to the problem rather than raising it on every call. Remember that thinking blocks return to the API unchanged or the next request fails. Choosing which model to run, as distinct from whether to enable reasoning, is taught in the MSO Foundations module that precedes this one."
+      }
+    },
+    {
+      "id": "t2-q08",
+      "test": 2,
+      "module": 2,
+      "topic": "Safe streaming",
+      "prompt": "Which TWO streaming boundaries must a consumer respect?",
+      "options": [
+        "Treat any network disconnect as successful completion",
+        "Save incomplete tool-use fragments as complete assistant turns",
+        "Wait for a block to close before acting on that block",
+        "Wait for message_stop before committing the turn to history"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "The recap distinguishes block completion from message completion. Ignoring either can corrupt state and break a later tool call.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "3. A stream ending is not a message completing.",
+        "anchor": "3-a-stream-ending-is-not-a-message-completing",
+        "excerpt": "Streaming buys perceived latency at the cost of assembling the response yourself from partial events. Act on a block only after it closes, commit a turn to history only after message_stop, and on an interrupted stream discard the partial turn and retry. The failure mode to recognize is a tool-use error on a retry that traces back to a half-built block from a dropped stream, not to the schema."
+      }
+    },
+    {
+      "id": "t2-q09",
+      "test": 2,
+      "module": 2,
+      "topic": "Tool descriptions",
+      "prompt": "A team connects every available MCP server just in case. What hidden context cost does the course highlight?",
+      "options": [
+        "MCP definitions consume tokens only after successful execution",
+        "MCP makes the context window unlimited",
+        "Unused servers automatically remove conversation history",
+        "Connected tool definitions consume context even when the tools are not used"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The recap warns that connected server definitions occupy the context window. Load capabilities deliberately.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "4. Every wrong-tool selection traces back to the schema, and most of the time to the description.",
+        "anchor": "4-every-wrong-tool-selection-traces-back-to-the-schema-and-most-of-the-time-to-the-description",
+        "excerpt": "Claude picks a tool by reading the description field and matching it against the user's request, which means two tools that both say \"use this to find information\" are indistinguishable from Claude's side even when the input schemas look nothing alike. The one sentence that resolves most wrong-tool bugs is the exclusion condition: a line in every description naming when not to call the tool, written into the schema at design time rather than after the first wrong call shows up in a log. When someone else has already written the tools, MCP lets you connect a maintained server instead of authoring every schema by hand, but each connected server adds its tool definitions to the context window whether the tools are used, so connect deliberately and control loading cost."
+      }
+    },
+    {
+      "id": "t2-q10",
+      "test": 2,
+      "module": 2,
+      "topic": "Context engineering",
+      "prompt": "A long investigation needs some earlier state but not every raw tool response. What should guide the choice of pruning versus compaction?",
+      "options": [
+        "Which earlier information must remain available for the next steps",
+        "A policy that all raw tool results must remain verbatim",
+        "A rule that tool outputs do not count as context",
+        "The default summary length without inspecting the task’s information needs"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Pruning, compaction, and subagent handoffs reclaim different information. The right choice depends on what earlier state remains necessary.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "5. Context is a fixed budget, and tool outputs spend it faster than anything else in the loop.",
+        "anchor": "5-context-is-a-fixed-budget-and-tool-outputs-spend-it-faster-than-anything-else-in-the-loop",
+        "excerpt": "Production tool outputs run three to five times longer than the fixtures used in development, so a session that holds together cleanly across fifty turns in testing can hit the ceiling at turn eight once it ships. Pruning, compaction, and subagent handoffs each buy back headroom in different ways, and the one to apply depends on whether you still need the earlier state. When tool selection starts degrading after a fixed number of turns, the window is the first place to look, not the schema."
+      }
+    },
+    {
+      "id": "t2-q11",
+      "test": 2,
+      "module": 2,
+      "topic": "Workflows and agents",
+      "prompt": "An investigation has a clear goal and available tools, but the next step depends on discoveries. Which design is the better fit?",
+      "options": [
+        "A batch transport used as a substitute for decision logic",
+        "An agent that selects its path using observations",
+        "A rigid sequence that assumes every input follows one path",
+        "A single hard-coded output"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The course separates an unknown path from a known sequence. Adaptive tool selection fits the former.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "6. The workflow-or-agent decision sets the cost of everything that follows, and human checkpoints belong in the design.",
+        "anchor": "6-the-workflow-or-agent-decision-sets-the-cost-of-everything-that-follows-and-human-checkpoints-belong-in-the-design",
+        "excerpt": "A workflow is the right call when you can write the exact steps in code, and an agent is the right call when you can specify the goal and the tools but not the path between them. Choosing wrong in either direction only surfaces in production: agents where workflows would do add context cost and behavior that lives in transcripts, and workflows where agents are needed break the first time an input falls outside the path. If a tool can take an irreversible action, the human-in-the-loop checkpoint goes in before the loop is wired, not after the first write reaches a customer environment."
+      }
+    },
+    {
+      "id": "t2-q12",
+      "test": 2,
+      "module": 2,
+      "topic": "Memory scope",
+      "prompt": "A summarizer drops a critical decision needed next week. What tradeoff did the team overlook?",
+      "options": [
+        "External storage cannot retain decisions",
+        "A Skill automatically stores all past user conversations",
+        "Summarized memory loses details the summarizer does not preserve",
+        "Summarization preserves every detail exactly"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Summarization saves context but is lossy. Repeatable instructions in a Skill are a different concern from retained task state.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "7. Memory scope is decided by the shape of the session, not by what is easiest to implement.",
+        "anchor": "7-memory-scope-is-decided-by-the-shape-of-the-session-not-by-what-is-easiest-to-implement",
+        "excerpt": "In-context memory is the simplest pattern to write, which is why it is also the one that fails earliest when production sessions turn out to be shorter and more numerous than the long continuous sessions used in development. External storage adds latency but the state survives across sessions, summarized memory cuts cost but loses anything the summarizer prompt did not preserve, and stateless is correct for jobs that complete and close. The refactor from in-context to external under production pressure takes about an hour, and making the same choice deliberately at design time takes about twenty minutes. Carrying repeatable instructions across tasks is a separate problem from carrying state, and the pattern for it is a Skill: a markdown file Claude loads on demand by matching its description, rather than instructions injected into every session."
+      }
+    },
+    {
+      "id": "t2-q13",
+      "test": 2,
+      "module": 2,
+      "topic": "Ingestion and batches",
+      "prompt": "The same image asset is used in many requests. Which source-described ingestion choice is intended for reuse?",
+      "options": [
+        "Repeated inline base64 as the only possible method",
+        "Describing the image in prose instead of supplying the reusable asset",
+        "Repeatedly embedding the entire asset into each request",
+        "The Files API"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The recap pairs inline base64 with one-off images and the Files API with assets reused across requests.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "8. Calculate the cost of a multimodal input before you write the ingestion code and match the API to the workload.",
+        "anchor": "8-calculate-the-cost-of-a-multimodal-input-before-you-write-the-ingestion-code-and-match-the-api-to-the-workload",
+        "excerpt": "An image costs ⌈width / 28⌉ × ⌈height / 28⌉ visual tokens, and the per-image ceiling differs by model tier. A high-resolution original on the newest models can cost many times what a thumbnail costs in your test set, so the formula needs to run against the largest input you expect in production rather than the inputs you have on hand. Inline base64 fits one-off images, the Files API fits assets reused across requests, and the Message Batches API handles offline work at lower per-token cost in exchange for non-deterministic latency. The mistake worth avoiding is calling the synchronous API in a loop and treating that as batching."
+      }
+    },
+    {
+      "id": "t2-q14",
+      "test": 2,
+      "module": 2,
+      "topic": "Tool-result protocol",
+      "prompt": "A tool succeeds, but the application invents a new ID for its result. What is the protocol defect?",
+      "options": [
+        "The result no longer matches the original tool_use ID",
+        "The tool schema must always include the result ID as an input",
+        "Tool results must be system messages",
+        "Successful tools never need results"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The ID is the link between the request and its result. A successful execution still needs the correctly matched protocol response.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Tool_use_block",
+        "anchor": "tooluseblock",
+        "excerpt": "A content block returned by the assistant when Claude wants to call a function. Contains the tool name, a unique ID, and the input arguments Claude wants passed to your code. Every tool_use block must be answered by a matching tool_result block in the immediately following user turn, with the same ID preserved exactly."
+      }
+    },
+    {
+      "id": "t2-q15",
+      "test": 2,
+      "module": 2,
+      "topic": "SDK responsibilities",
+      "prompt": "A developer installs the Anthropic SDK and expects tools to execute themselves repeatedly until completion. What is missing?",
+      "options": [
+        "A higher response-length limit for each isolated call",
+        "Application loop logic or a managed agent runtime",
+        "A synchronous call instead of an asynchronous call",
+        "Schema declarations treated as executable implementations"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The thin API SDK does not run the agent loop. The application must implement orchestration or use a runtime that provides it.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Claude Agent SDK",
+        "anchor": "claude-agent-sdk",
+        "excerpt": "A managed agent runtime distributed as @anthropic-ai/claude-agent-sdk (Typescript) / claude-agent-sdk (Python). It gives a partner programmatic access to the same agent loop that powers Claude Code: iteration, tool execution, observation, termination, so the partner can embed an agent inside their own product instead of running Claude Code in a terminal. Distinct from the Anthropic SDK, which is a thin convenience wrapper over the API and does not run an agent loop."
+      }
+    },
+    {
+      "id": "t2-q16",
+      "test": 2,
+      "module": 3,
+      "topic": "Permissions",
+      "prompt": "A sensitive path must remain protected even when permission settings change. What additional control does the lesson call for?",
+      "options": [
+        "A faster reasoning mode",
+        "A longer answer format",
+        "A project or enterprise deny rule on that path",
+        "A comment asking the model to be careful"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The recap describes deny rules as protection for paths a mode alone does not cover. Natural-language reminders do not establish the same control.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Permission mode is a risk decision, not a speed decision.",
+        "anchor": "permission-mode-is-a-risk-decision-not-a-speed-decision",
+        "excerpt": "Claude Code gives you modes ranging from prompt-before-everything to prompt-for-nothing. Permission mode should match the risk profile of the work and environment, not the preference for fewer prompts. A bypass mode on a developer workstation against a live codebase removes every checkpoint between the agent and your files. A deny rule on the path that must not be touched, set at the project or enterprise level, covers the gap that a mode alone does not.\n\n2"
+      }
+    },
+    {
+      "id": "t2-q17",
+      "test": 2,
+      "module": 3,
+      "topic": "Durable project context",
+      "prompt": "A team needs a guardrail to run deterministically before a protected action. Which mechanism fits?",
+      "options": [
+        "A suggestion buried in CLAUDE.md",
+        "A few-shot output example",
+        "A model-generated assurance after the action",
+        "A hook"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The source contrasts deterministic hooks with probabilistic instruction following. Project memory communicates guidance; hooks enforce checks.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Durable context requires the right mechanism for each concern.",
+        "anchor": "durable-context-requires-the-right-mechanism-for-each-concern",
+        "excerpt": "CLAUDE.md is the session-persistent project memory, but it dilutes with size. Rules files scope guidance to where it applies. Hooks enforce guardrails deterministically, not probabilistically. Subagents keep exploration work out of the main context. These four mechanisms each solve a different problem, so forcing all of them into CLAUDE.md produces a single file that is harder to maintain and easier to ignore.\n\n5"
+      }
+    },
+    {
+      "id": "t2-q18",
+      "test": 2,
+      "module": 3,
+      "topic": "Portable skills",
+      "prompt": "A subagent fails to follow a Skill available to the main agent. What course rule explains the gap?",
+      "options": [
+        "Subagents start clean and do not automatically preload Skills",
+        "Subagents always share every loaded instruction",
+        "Skills apply only after an irreversible write",
+        "Every Skill is a built-in tool"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The source explicitly warns that subagents do not automatically preload Skills. Required instructions must be configured for that runtime.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "A skill is portable, but “runs everywhere” is something you design for.",
+        "anchor": "a-skill-is-portable-but-runs-everywhere-is-something-you-design-for",
+        "excerpt": "The same SKILL.md can run in Claude Code, on the Messages API, and through the Agent SDK, but each one loads and sandboxes it differently: filesystem discovery in Claude Code, beta headers and a code execution container on the API, and settingSources on the SDK. A skill scoped to a clear description and free of local-environment assumptions ports cleanly; one that assumes the terminal it was written in does not. In every runtime, subagents start clean: they do not automatically preload skills.\n\n4"
+      }
+    },
+    {
+      "id": "t2-q19",
+      "test": 2,
+      "module": 3,
+      "topic": "MCP transport and scope",
+      "prompt": "A repository shares an MCP configuration that launches a stdio command. What must the team avoid assuming?",
+      "options": [
+        "That transport affects where the server runs",
+        "That committing the configuration creates a centrally hosted shared server",
+        "That configuration scope exists",
+        "That local subprocesses need a command"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Project scope shares configuration. It does not turn a local stdio subprocess into a remote service available to the whole team.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Transport and scope are independent decisions with dependent consequences.",
+        "anchor": "transport-and-scope-are-independent-decisions-with-dependent-consequences",
+        "excerpt": "stdio is for servers that run on your machine. HTTP is for anything hosted remotely or accessed by multiple developers. Local scope keeps a server personal; project scope shares it with the repo via .mcp.json. The combination must match the deployment intent: a shared team server requires HTTP transport and project or enterprise scope. A stdio server in .mcp.json is a configuration that looks shareable but is not.\n\n7"
+      }
+    },
+    {
+      "id": "t2-q20",
+      "test": 2,
+      "module": 3,
+      "topic": "Enterprise integration",
+      "prompt": "Which TWO measures in the recap address auditability and configuration control?",
+      "options": [
+        "A longer system prompt as the only audit trail",
+        "Hard-coded secrets in a shared plugin",
+        "PostToolUse hooks for audit logging",
+        "Enterprise managed settings for configuration lock"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "The source maps audit logging to PostToolUse hooks and configuration control to managed settings; these are separate enterprise requirements.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Enterprise integration requires identifying the security requirements before deployment.",
+        "anchor": "enterprise-integration-requires-identifying-the-security-requirements-before-deployment",
+        "excerpt": "A regulated customer asks about identity, data residency, access logging, and configuration control. The answers come from OAuth for user-identity services, environment variables for service credentials, PostToolUse hooks for audit logging, and enterprise managed settings for configuration lock. None of these is hard to implement, but all of them are hard to retrofit after a production deployment has failed a security review."
+      }
+    },
+    {
+      "id": "t2-q21",
+      "test": 2,
+      "module": 4,
+      "topic": "Evaluation design",
+      "prompt": "Which TWO pairings match the course’s grading guidance?",
+      "options": [
+        "A calibrated judge for open-ended quality",
+        "Exact prose matching for every open-ended explanation",
+        "An uncalibrated judge as unquestionable ground truth",
+        "Code checks for structured output"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "The grading method must fit the output. Open-ended model judges should be calibrated against human-labelled cases before being trusted.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Set the standard before you build it.",
+        "anchor": "set-the-standard-before-you-build-it",
+        "excerpt": "An eval turns \"done\" from a feeling into a score on a fixed set of cases. The grading method must match the output: exact match when there is one correct form, a code check for structured output, and a judge for open-ended quality, which you calibrate against human-labelled cases before you trust it. You write the eval first because identifying the expected behavior forces you to define success while the design can still change.\n\n2"
+      }
+    },
+    {
+      "id": "t2-q22",
+      "test": 2,
+      "module": 4,
+      "topic": "Tests and traces",
+      "prompt": "A multi-step feature produces a bad final answer. What evidence helps locate the failing step?",
+      "options": [
+        "A trace of the steps and their results",
+        "Only aggregate latency for the final response",
+        "Only the average output-token count for the whole workflow",
+        "The assumption that every failure is a model-quality problem"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A trace shows which step introduced the bad result and separates integration failures from later output symptoms.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Match the test to the failure, and trace so you know where it happened.",
+        "anchor": "match-the-test-to-the-failure-and-trace-so-you-know-where-it-happened",
+        "excerpt": "Unit, functional, integration, and end-to-end tests each catch a different break, and most silent failures hide at the integration seam where two passing components hand off. A trace shows which step produced the bad result, which turns a day of investigation into a short fix. The same instinct drives the retrieval choice: fetch once for single-fact lookups, search across iterations when the question is genuinely multi-step.\n\n3"
+      }
+    },
+    {
+      "id": "t2-q23",
+      "test": 2,
+      "module": 4,
+      "topic": "Failure handling",
+      "prompt": "A tool fails, and the application returns an empty successful result. Why is this wrong?",
+      "options": [
+        "Tool errors should never be reported",
+        "The model may treat the empty result as data instead of an error",
+        "The model always infers the original exception exactly",
+        "Empty results automatically trigger correct backoff"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The course requires tool failures to return with the error flag set. Hiding the failure changes its meaning for the model.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Sort every failure, then handle them individually.",
+        "anchor": "sort-every-failure-then-handle-them-individually",
+        "excerpt": "The first question for any failure is whether waiting and retrying could resolve the issue. Retriable failures get exponential backoff, with a cap and a retry budget, never an immediate loop that only deepens the problem. Tool failures come back to the model with the error flag set, not hidden behind an empty result that the model mistakes for data. Every failure a retry cannot fix requires a named fallback. Otherwise, an unhandled exception becomes the default behavior, which is how one bad response takes down the whole flow.\n\n4"
+      }
+    },
+    {
+      "id": "t2-q24",
+      "test": 2,
+      "module": 4,
+      "topic": "Cost and orchestration",
+      "prompt": "Which TWO measurements belong in per-call instrumentation according to the recap?",
+      "options": [
+        "Only total monthly spend, with no call detail",
+        "Only the number of users registered in the application",
+        "Token cost and latency",
+        "Error rate"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "Per-call cost, latency, and errors identify a tuning lever. A monthly invoice alone does not explain which calls are responsible.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Measure cost and latency per call, and fan out only when a task truly splits.",
+        "anchor": "measure-cost-and-latency-per-call-and-fan-out-only-when-a-task-truly-splits",
+        "excerpt": "You cannot budget what you do not measure, so instrument token cost, latency, and error rate on every call. Then tune a chosen lever instead of guessing from the invoice. An orchestrator-worker pattern multiplies token cost by the number of subagents, roughly fifteen times in Anthropic's reported case. It earns that cost only on tasks that split into independent parallel parts, not on tightly coupled work that a single agent can handle for a fraction of the cost.\n\n5"
+      }
+    },
+    {
+      "id": "t2-q25",
+      "test": 2,
+      "module": 4,
+      "topic": "Prompt injection defenses",
+      "prompt": "Which TWO measures directly follow the security recap?",
+      "options": [
+        "Block and log protected actions before tool execution",
+        "Rely entirely on a promise in the prompt",
+        "Commit secrets so every component can access them",
+        "Scope the agent’s identity to least privilege"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Least privilege limits reachable actions; a pre-action hook enforces and records the boundary. Prompt reminders alone are insufficient.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Treat fetched content as data and enforce the boundary with a hook.",
+        "anchor": "treat-fetched-content-as-data-and-enforce-the-boundary-with-a-hook",
+        "excerpt": "A model reads everything in its context together, as one stream of tokens with no built-in line between trusted instructions and untrusted data. An instruction hidden in fetched content can influence the agent's behavior. Trusting your own users does not help, because the injection arrives through the content the agent reads. Examine untrusted input as data, scope the agent's identity to least privilege, keep secrets out of committed config, and enforce the action boundary with a hook that blocks and logs before the tool runs. That boundary is what a regulated review can control and inspect."
+      }
+    },
+    {
+      "id": "t2-q26",
+      "test": 2,
+      "module": 5,
+      "topic": "Reusable accelerators",
+      "prompt": "Which TWO artifacts does the recap say to bundle alongside the reusable asset?",
+      "options": [
+        "The eval",
+        "The audit log",
+        "An undocumented private path dependency",
+        "A committed production secret"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "The source explicitly pairs packaging with the eval and audit log. These help the next team verify the configured asset.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Package while the build is fresh.",
+        "anchor": "package-while-the-build-is-fresh",
+        "excerpt": "An accelerator keeps the reusable logic, exposes the customer-specific parts as documented parameters, and bundles the eval and the audit log alongside the asset. Correct packaging produces an asset teams configure. The knowledge of what is customer-specific is most expensive to reconstruct after the people who held it have moved on.\n\n02"
+      }
+    },
+    {
+      "id": "t2-q27",
+      "test": 2,
+      "module": 5,
+      "topic": "Contribution readiness",
+      "prompt": "What must be confirmed before a contribution enters technical review?",
+      "options": [
+        "That every deployment uses a moving model alias",
+        "Licensing rights to contribute the code",
+        "That the contribution uses the most capable model",
+        "That no tests exist"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The recap explicitly puts licensing-rights confirmation before technical review. Technical usefulness alone does not establish permission to contribute.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "A maintainer accepts what they can verify.",
+        "anchor": "a-maintainer-accepts-what-they-can-verify",
+        "excerpt": "Moving an asset into shared infrastructure means matching it to the channel built for its shape, then clearing the review bar: focused code, a runnable example, a test, and a statement of assumptions, with licensing rights confirmed before the technical review. A contribution a reviewer cannot verify sits at the back of the queue. Readiness moves a private asset into shared infrastructure others build on.\n\n03"
+      }
+    },
+    {
+      "id": "t2-q28",
+      "test": 2,
+      "module": 5,
+      "topic": "Versioning and rollback",
+      "prompt": "Which TWO release choices follow the source’s versioning guidance?",
+      "options": [
+        "Use an automatically moving alias as an immutable snapshot",
+        "Discard the last working version immediately",
+        "Pin the specific model version",
+        "Keep the prior version available"
+      ],
+      "correct": [
+        2,
+        3
+      ],
+      "explanation": "Pinning and retaining a prior version make adoption and recovery deliberate. An alias is not a fixed edition.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Pin what ships.",
+        "anchor": "pin-what-ships",
+        "excerpt": "Choose the deployment platform based on the customer's cloud and compliance posture, then pin the specific model version rather than the moving alias and keep the prior version available. An alias is like asking for the current edition of a book: convenient, but the text can change. Pinning cites a fixed edition, so an upstream model change is something you adopt deliberately rather than something that arrives overnight with no rollback path.\n\n04"
+      }
+    },
+    {
+      "id": "t2-q29",
+      "test": 2,
+      "module": 5,
+      "topic": "Deployment placement",
+      "prompt": "Two deployment options have similar token prices. Which comparison is more defensible?",
+      "options": [
+        "Token price alone",
+        "A comparison of capability benchmarks without environment constraints",
+        "A comparison of default-region latency without compliance checks",
+        "Total per-call cost, latency from the customer region, and compliance fit"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Platform placement depends on more than the model’s token price. The decisive dimensions must be measured in the customer’s context.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Measure the dimension that decides the placement.",
+        "anchor": "measure-the-dimension-that-decides-the-placement",
+        "excerpt": "A platform choice is defensible only when latency, compliance, and cost are measured: latency from the customer's region, compliance against their existing certification, and cost as the total per call rather than the token price alone. For regulated customers, compliance is usually pass-or-fail. Raising compliance as a constraint during scoping prevents it from rejecting the build later at contract review.\n\n05"
+      }
+    },
+    {
+      "id": "t2-q30",
+      "test": 2,
+      "module": 5,
+      "topic": "Trust boundaries",
+      "prompt": "A multi-component design has a seam the team cannot secure. What does the course prescribe?",
+      "options": [
+        "Escalate to a human owner rather than ship that unsecured seam",
+        "Ship it because the other components are secure",
+        "Give every component administrator permissions",
+        "Ask the model to declare the seam secure"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The recap explicitly sends an unsecured seam to a human owner. Security must hold at the most privileged boundary too.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Mark every seam as a boundary.",
+        "anchor": "mark-every-seam-as-a-boundary",
+        "excerpt": "A multi-component application is only as contained as its most privileged seam. Scope each component to the minimum access its role requires and treat every point where data crosses as a trust boundary. Fetched content is treated as data, not instructions. Trust at a component boundary must be explicitly established. It does not carry over from the component that sent the data. When a seam cannot be secured, it goes to a human owner rather than being shipped."
+      }
+    },
+    {
+      "id": "t3-q01",
+      "test": 3,
+      "module": 1,
+      "topic": "Token budgets",
+      "prompt": "A team migrates models and keeps a fixed characters-per-token estimate as an exact cost calculation. What should change?",
+      "options": [
+        "Assume every model shares one tokenizer",
+        "Exclude conversation history from the estimate",
+        "Validate tokenization for the chosen model and budget in tokens",
+        "Use word count as an exact replacement"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The archived lesson explicitly makes character-to-token ratios model-dependent. History is part of the metered input too.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Tokens: the unit of input, output, and cost",
+        "anchor": "tokens-the-unit-of-input-output-and-cost",
+        "excerpt": "Claude does not read characters or words directly. It reads tokens, and the characters-per-token average depends on the tokenizer of the model at hand and differs between model generations. Treat any chars-per-token rule of thumb as model-dependent and confirm current tokenizer behavior at build time. Everything the model processes is counted in tokens: your prompt, the conversation history, tool definitions, tool results, and the response the model generates. Tokens are the unit of both pricing and budget, so when you estimate what a feature costs or whether an input fits, you are counting tokens, not words. A useful habit is to think in tokens, since that is the unit the API bills in and the context window measures."
+      }
+    },
+    {
+      "id": "t3-q02",
+      "test": 3,
+      "module": 1,
+      "topic": "Context limits",
+      "prompt": "The archived course distinguishes oversized input from hitting the ceiling while generating. Which pairing matches that lesson?",
+      "options": [
+        "Both cases automatically expand the context window",
+        "Both cases necessarily return a complete answer",
+        "Oversized input is silently stored as external memory",
+        "Oversized input is rejected; a generation that reaches the ceiling can return truncated output"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The lesson describes validation before generation for oversized input and truncated output for an in-generation ceiling. Check the actual stop reason instead of assuming completion.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "The context window: a fixed budget",
+        "anchor": "the-context-window-a-fixed-budget",
+        "excerpt": "The context window is the total number of tokens the model can take in for a single request. It holds everything at once: the system prompt, the full conversation so far, any documents you inject, every tool result, and the model output. It is a fixed budget with two distinct edge behaviors. A request whose input is already larger than the window is rejected with a validation error before generation begins. A request that fits on input can still reach the ceiling during generation. Current models then stop and return the output generated so far with a model_context_window_exceeded stop reason rather than raising an error. Either way, keeping a long session running requires the application to trim or summarize history before each call. In development, the window rarely fills because test inputs are short. In production, on the other hand, longer inputs and more turns fill the window faster. This is the failure Module 2 explores in detail."
+      }
+    },
+    {
+      "id": "t3-q03",
+      "test": 3,
+      "module": 1,
+      "topic": "Testing variable output",
+      "prompt": "A team needs to assess whether a generated explanation has the right meaning, beyond whether its JSON parses. What should it add?",
+      "options": [
+        "An eval with a model-graded judge for semantic quality",
+        "Only an exact byte comparison",
+        "Only a response-length check",
+        "A rule that any valid JSON is semantically correct"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Parsing checks structure, not meaning. The lesson recommends an eval with a model-graded judge when semantic judgment is needed.",
+      "source": {
+        "path": "01-mso-foundations/02-how-llms-behave.md",
+        "heading": "Non-determinism: what it means for testing and evals",
+        "anchor": "non-determinism-what-it-means-for-testing-and-evals",
+        "excerpt": "Non-determinism is the primary consequence of sampling: identical inputs do not guarantee identical outputs. That changes how you test a Claude feature. A test that asserts the exact text of a response will be inconsistent, because the model can express the same correct answer many ways. Instead, assert on the property that must hold: a required field is present, a value is in range, the structure parses. When you need to judge meaning rather than structure, use an eval with a model-graded judge. This is why the course treats evals as the standard for knowing a feature is correct, and why Module 3 builds that capability."
+      }
+    },
+    {
+      "id": "t3-q04",
+      "test": 3,
+      "module": 1,
+      "topic": "Model and reasoning choices",
+      "prompt": "An application has easy classifications and difficult multi-step cases. Which approach matches the lesson?",
+      "options": [
+        "Use the deepest reasoning for all requests regardless of evaluation",
+        "Calibrate reasoning to each task and verify the selected model’s supported settings",
+        "Apply an old fixed thinking budget to every model without checking",
+        "Assume reasoning has no token cost"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The source calls for task-appropriate reasoning and verification of model-specific support, rather than assuming historical controls work everywhere.",
+      "source": {
+        "path": "01-mso-foundations/03-models-reasoning.md",
+        "heading": "Reasoning modes are a separate setting from model choice",
+        "anchor": "reasoning-modes-are-a-separate-setting-from-model-choice",
+        "excerpt": "Choosing which model to run is one decision. Whether the model reasons before answering is a separate decision you make per call. On current models the reasoning mode is adaptive thinking: the model decides when and how much to think, and you tune depth with an effort setting rather than a fixed token budget (the older budget_tokens control is deprecated and, on the newest model generations, returns a 400 error). Thinking content is omitted from responses by default on the newest models. Request summarized display when you need to show it. Reasoning earns its cost on hard, multi-step problems and is wasted on lookups and classification. The key point for this module is that the two levers compose: model choice picks the family member, while the reasoning mode is configured per request. Per-model defaults differ (some of the newest models think adaptively by default or always), so confirm the current thinking defaults for your model at build time."
+      }
+    },
+    {
+      "id": "t3-q05",
+      "test": 3,
+      "module": 1,
+      "topic": "Few-shot prompting",
+      "prompt": "Why can improving a prompt with examples also increase operating cost?",
+      "options": [
+        "Examples disable token billing",
+        "Examples are stored for free outside the request",
+        "Examples are sent in the prompt on each call and consume context",
+        "Examples always require fine-tuning a new model"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The course describes an explicit cost-quality tradeoff: demonstrations are input tokens that recur on every call.",
+      "source": {
+        "path": "01-mso-foundations/04-prompting-modes.md",
+        "heading": "The cost and quality trade-off",
+        "anchor": "the-cost-and-quality-trade-off",
+        "excerpt": "Each example you add costs tokens on every call and consumes context budget, so the choice trades quality against cost. Reach for zero-shot when the task is simple and the output shape is obvious. Move to one-shot or multi-shot when the output has a specific structure, casing, or edge case that a description keeps missing. Often one or two correct examples usually fix the issue faster than another paragraph of instructions. The general discipline, which Module 2 reinforces, is to add the smallest amount of prompt that produces a reliable result."
+      }
+    },
+    {
+      "id": "t3-q06",
+      "test": 3,
+      "module": 2,
+      "topic": "Prompt failure diagnosis",
+      "prompt": "Which TWO controls does the course distinguish for schema enforcement?",
+      "options": [
+        "Strict tool use validates tool arguments",
+        "JSON outputs choose the cheapest deployment platform",
+        "Strict tool use grants authorization to execute any tool",
+        "JSON outputs constrain the final response"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Output schemas and tool-argument schemas constrain different objects. Validation is not authorization and does not decide platform placement.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "1. When a prompt fails, the failure type tells you which technique is missing.",
+        "anchor": "1-when-a-prompt-fails-the-failure-type-tells-you-which-technique-is-missing",
+        "excerpt": "Output in the wrong shape points to a missing output constraint, drift across turns points to an underspecified system prompt, and a hallucinated structure points to the absence of few-shot examples. The instinct to reword the instruction and try again rarely works, because none of those failures are phrasing problems. Diagnose the failure type first, then add the technique that addresses it. When prompt-level instructions are not enough because untested inputs still break the parser, move output control into the API with structured outputs: JSON outputs constrain the final response against a schema, and strict tool use validates the arguments Claude passes to your tools, at the cost of first-call compilation latency and added input tokens."
+      }
+    },
+    {
+      "id": "t3-q07",
+      "test": 3,
+      "module": 2,
+      "topic": "Thinking blocks",
+      "prompt": "Which handling rule matters when a tool loop carries model thinking content into its next request?",
+      "options": [
+        "Return the thinking blocks unchanged",
+        "Summarize them in place to save tokens",
+        "Replace them with the selected answer text",
+        "Reorder their internal fields as free-form prose"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Thinking content is not ordinary prose to rewrite in the conversation. The course warns that modifying these blocks can break the next request.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "2. Match the reasoning depth to the task before you tune the prompt.",
+        "anchor": "2-match-the-reasoning-depth-to-the-task-before-you-tune-the-prompt",
+        "excerpt": "Enable reasoning only where a reasoning pass changes the answer and calibrate the effort setting to the problem rather than raising it on every call. Remember that thinking blocks return to the API unchanged or the next request fails. Choosing which model to run, as distinct from whether to enable reasoning, is taught in the MSO Foundations module that precedes this one."
+      }
+    },
+    {
+      "id": "t3-q08",
+      "test": 3,
+      "module": 2,
+      "topic": "Safe streaming",
+      "prompt": "Tool-use errors appear only after retrying interrupted streams. What evidence should be checked first?",
+      "options": [
+        "Whether the output-token budget should be raised globally",
+        "Whether a partial turn was added to history before message_stop",
+        "Whether the tool dispatch table names need changing",
+        "Whether every tool description is shorter than ten words"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The source identifies this pattern as a history-assembly failure: a half-built block can poison the retry even when the schema is valid.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "3. A stream ending is not a message completing.",
+        "anchor": "3-a-stream-ending-is-not-a-message-completing",
+        "excerpt": "Streaming buys perceived latency at the cost of assembling the response yourself from partial events. Act on a block only after it closes, commit a turn to history only after message_stop, and on an interrupted stream discard the partial turn and retry. The failure mode to recognize is a tool-use error on a retry that traces back to a half-built block from a dropped stream, not to the schema."
+      }
+    },
+    {
+      "id": "t3-q09",
+      "test": 3,
+      "module": 2,
+      "topic": "Tool descriptions",
+      "prompt": "A lookup tool and a mutation tool overlap in wording. Which change most directly improves selection?",
+      "options": [
+        "Rely only on dissimilar input types",
+        "Assume the model inspects the implementation code automatically",
+        "Add a clear exclusion condition describing when each tool must not be called",
+        "Keep the descriptions identical but add longer examples elsewhere"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Distinct schemas alone may not distinguish intent. The lesson emphasizes description-level selection boundaries.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "4. Every wrong-tool selection traces back to the schema, and most of the time to the description.",
+        "anchor": "4-every-wrong-tool-selection-traces-back-to-the-schema-and-most-of-the-time-to-the-description",
+        "excerpt": "Claude picks a tool by reading the description field and matching it against the user's request, which means two tools that both say \"use this to find information\" are indistinguishable from Claude's side even when the input schemas look nothing alike. The one sentence that resolves most wrong-tool bugs is the exclusion condition: a line in every description naming when not to call the tool, written into the schema at design time rather than after the first wrong call shows up in a log. When someone else has already written the tools, MCP lets you connect a maintained server instead of authoring every schema by hand, but each connected server adds its tool definitions to the context window whether the tools are used, so connect deliberately and control loading cost."
+      }
+    },
+    {
+      "id": "t3-q10",
+      "test": 3,
+      "module": 2,
+      "topic": "Context engineering",
+      "prompt": "Tool selection degrades only after a predictable number of large-output turns. What is the best first diagnostic?",
+      "options": [
+        "Rewrite every schema before measuring context",
+        "Disable all output validation",
+        "Treat production output size as identical to fixtures",
+        "Inspect context growth across those turns"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The recap directs you to investigate the window when selection degrades as history accumulates; changing schemas blindly misses the likely cause.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "5. Context is a fixed budget, and tool outputs spend it faster than anything else in the loop.",
+        "anchor": "5-context-is-a-fixed-budget-and-tool-outputs-spend-it-faster-than-anything-else-in-the-loop",
+        "excerpt": "Production tool outputs run three to five times longer than the fixtures used in development, so a session that holds together cleanly across fifty turns in testing can hit the ceiling at turn eight once it ships. Pruning, compaction, and subagent handoffs each buy back headroom in different ways, and the one to apply depends on whether you still need the earlier state. When tool selection starts degrading after a fixed number of turns, the window is the first place to look, not the schema."
+      }
+    },
+    {
+      "id": "t3-q11",
+      "test": 3,
+      "module": 2,
+      "topic": "Workflows and agents",
+      "prompt": "An agent can make irreversible customer changes. When should the human checkpoint be designed?",
+      "options": [
+        "Before wiring the loop that can perform those actions",
+        "Only after the first production incident",
+        "After the write has completed",
+        "Only if the model asks for a review"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The recap requires the checkpoint before the loop is wired. Approval after an irreversible action cannot prevent that action.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "6. The workflow-or-agent decision sets the cost of everything that follows, and human checkpoints belong in the design.",
+        "anchor": "6-the-workflow-or-agent-decision-sets-the-cost-of-everything-that-follows-and-human-checkpoints-belong-in-the-design",
+        "excerpt": "A workflow is the right call when you can write the exact steps in code, and an agent is the right call when you can specify the goal and the tools but not the path between them. Choosing wrong in either direction only surfaces in production: agents where workflows would do add context cost and behavior that lives in transcripts, and workflows where agents are needed break the first time an input falls outside the path. If a tool can take an irreversible action, the human-in-the-loop checkpoint goes in before the loop is wired, not after the first write reaches a customer environment."
+      }
+    },
+    {
+      "id": "t3-q12",
+      "test": 3,
+      "module": 2,
+      "topic": "Memory scope",
+      "prompt": "A one-off transformation completes and has no future state dependency. Which memory pattern does the course consider valid?",
+      "options": [
+        "Replaying every prior user’s history",
+        "Stateless execution",
+        "Persistent storage for every intermediate token",
+        "A lifelong conversation for all unrelated jobs"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Stateless is appropriate for jobs that complete and close. Persistence should follow the actual session requirements.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "7. Memory scope is decided by the shape of the session, not by what is easiest to implement.",
+        "anchor": "7-memory-scope-is-decided-by-the-shape-of-the-session-not-by-what-is-easiest-to-implement",
+        "excerpt": "In-context memory is the simplest pattern to write, which is why it is also the one that fails earliest when production sessions turn out to be shorter and more numerous than the long continuous sessions used in development. External storage adds latency but the state survives across sessions, summarized memory cuts cost but loses anything the summarizer prompt did not preserve, and stateless is correct for jobs that complete and close. The refactor from in-context to external under production pressure takes about an hour, and making the same choice deliberately at design time takes about twenty minutes. Carrying repeatable instructions across tasks is a separate problem from carrying state, and the pattern for it is a Skill: a markdown file Claude loads on demand by matching its description, rather than instructions injected into every session."
+      }
+    },
+    {
+      "id": "t3-q13",
+      "test": 3,
+      "module": 2,
+      "topic": "Ingestion and batches",
+      "prompt": "A vision prototype is tested on thumbnails but production receives high-resolution originals. What should be assessed before ingestion ships?",
+      "options": [
+        "Only the total number of image requests",
+        "The assumption that all image sizes cost the same",
+        "The visual-token cost of the largest expected inputs",
+        "Only thumbnail request counts"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The source warns that high-resolution production inputs can cost far more than test thumbnails. Evaluate the largest real inputs and model-specific limits.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "8. Calculate the cost of a multimodal input before you write the ingestion code and match the API to the workload.",
+        "anchor": "8-calculate-the-cost-of-a-multimodal-input-before-you-write-the-ingestion-code-and-match-the-api-to-the-workload",
+        "excerpt": "An image costs ⌈width / 28⌉ × ⌈height / 28⌉ visual tokens, and the per-image ceiling differs by model tier. A high-resolution original on the newest models can cost many times what a thumbnail costs in your test set, so the formula needs to run against the largest input you expect in production rather than the inputs you have on hand. Inline base64 fits one-off images, the Files API fits assets reused across requests, and the Message Batches API handles offline work at lower per-token cost in exchange for non-deterministic latency. The mistake worth avoiding is calling the synchronous API in a loop and treating that as batching."
+      }
+    },
+    {
+      "id": "t3-q14",
+      "test": 3,
+      "module": 2,
+      "topic": "Tool-result protocol",
+      "prompt": "Which TWO fields of a tool-use request are directly relevant to dispatch and result matching?",
+      "options": [
+        "The unique ID carried into the matching tool_result",
+        "A new arbitrary ID chosen after execution",
+        "A prose guess at which earlier request probably caused it",
+        "The tool name and its input arguments for dispatch"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "A tool-use block supplies a name, arguments, and unique ID. Dispatch follows the name/arguments and correlation preserves the ID.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Tool_use_block",
+        "anchor": "tooluseblock",
+        "excerpt": "A content block returned by the assistant when Claude wants to call a function. Contains the tool name, a unique ID, and the input arguments Claude wants passed to your code. Every tool_use block must be answered by a matching tool_result block in the immediately following user turn, with the same ID preserved exactly."
+      }
+    },
+    {
+      "id": "t3-q15",
+      "test": 3,
+      "module": 2,
+      "topic": "SDK responsibilities",
+      "prompt": "Which requirement most specifically motivates the Agent SDK over a thin API wrapper?",
+      "options": [
+        "Embedding a managed agent loop inside a product",
+        "Serializing one JSON request only",
+        "Avoiding every permission decision",
+        "Guaranteeing that model output is always correct"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The glossary defines the Agent SDK as a way to embed the managed loop. It does not make correctness or permissions automatic.",
+      "source": {
+        "path": "02-production-grade-prompting-agents-tool-use/11-module-wrap-up.md",
+        "heading": "Claude Agent SDK",
+        "anchor": "claude-agent-sdk",
+        "excerpt": "A managed agent runtime distributed as @anthropic-ai/claude-agent-sdk (Typescript) / claude-agent-sdk (Python). It gives a partner programmatic access to the same agent loop that powers Claude Code: iteration, tool execution, observation, termination, so the partner can embed an agent inside their own product instead of running Claude Code in a terminal. Distinct from the Anthropic SDK, which is a thin convenience wrapper over the API and does not run an agent loop."
+      }
+    },
+    {
+      "id": "t3-q16",
+      "test": 3,
+      "module": 3,
+      "topic": "Permissions",
+      "prompt": "Why is selecting a bypass mode only for convenience unsafe on a live workstation?",
+      "options": [
+        "It guarantees human review of every mutation",
+        "It removes checkpoints between the agent and the files",
+        "It prevents every tool from running",
+        "It changes all production data into read-only data"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The source’s specific concern is removal of action checkpoints. Match the mode to the environment’s risk.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Permission mode is a risk decision, not a speed decision.",
+        "anchor": "permission-mode-is-a-risk-decision-not-a-speed-decision",
+        "excerpt": "Claude Code gives you modes ranging from prompt-before-everything to prompt-for-nothing. Permission mode should match the risk profile of the work and environment, not the preference for fewer prompts. A bypass mode on a developer workstation against a live codebase removes every checkpoint between the agent and your files. A deny rule on the path that must not be touched, set at the project or enterprise level, covers the gap that a mode alone does not.\n\n2"
+      }
+    },
+    {
+      "id": "t3-q17",
+      "test": 3,
+      "module": 3,
+      "topic": "Durable project context",
+      "prompt": "Exploration fills the main session with files that will never be reused. What mechanism addresses that context problem?",
+      "options": [
+        "A rule that every raw file must stay forever",
+        "Loading exploration transcripts into persistent project memory",
+        "A subagent that returns the relevant result",
+        "A longer universal CLAUDE.md"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The course uses subagents to keep exploration out of the main context. This is distinct from persistent project instructions.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Durable context requires the right mechanism for each concern.",
+        "anchor": "durable-context-requires-the-right-mechanism-for-each-concern",
+        "excerpt": "CLAUDE.md is the session-persistent project memory, but it dilutes with size. Rules files scope guidance to where it applies. Hooks enforce guardrails deterministically, not probabilistically. Subagents keep exploration work out of the main context. These four mechanisms each solve a different problem, so forcing all of them into CLAUDE.md produces a single file that is harder to maintain and easier to ignore.\n\n5"
+      }
+    },
+    {
+      "id": "t3-q18",
+      "test": 3,
+      "module": 3,
+      "topic": "Portable skills",
+      "prompt": "Which design most improves a Skill’s portability?",
+      "options": [
+        "Hard-coded local terminal paths",
+        "Depending on the parent’s entire conversation being inherited",
+        "Embedding service secrets into the markdown",
+        "A clear description and no assumptions about the author’s local environment"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Portability requires deliberate scope and runtime-independent assumptions. Merely copying the same SKILL.md is not sufficient.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "A skill is portable, but “runs everywhere” is something you design for.",
+        "anchor": "a-skill-is-portable-but-runs-everywhere-is-something-you-design-for",
+        "excerpt": "The same SKILL.md can run in Claude Code, on the Messages API, and through the Agent SDK, but each one loads and sandboxes it differently: filesystem discovery in Claude Code, beta headers and a code execution container on the API, and settingSources on the SDK. A skill scoped to a clear description and free of local-environment assumptions ports cleanly; one that assumes the terminal it was written in does not. In every runtime, subagents start clean: they do not automatically preload skills.\n\n4"
+      }
+    },
+    {
+      "id": "t3-q19",
+      "test": 3,
+      "module": 3,
+      "topic": "MCP transport and scope",
+      "prompt": "Which statement correctly separates the two MCP decisions?",
+      "options": [
+        "Transport chooses the communication/deployment channel; scope chooses how configuration is shared",
+        "Project scope automatically converts stdio to HTTP",
+        "HTTP transport automatically grants enterprise permission",
+        "Local scope means every developer shares the same remote identity"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Transport and scope are independent. Choose both to match how and where the integration will be used.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Transport and scope are independent decisions with dependent consequences.",
+        "anchor": "transport-and-scope-are-independent-decisions-with-dependent-consequences",
+        "excerpt": "stdio is for servers that run on your machine. HTTP is for anything hosted remotely or accessed by multiple developers. Local scope keeps a server personal; project scope shares it with the repo via .mcp.json. The combination must match the deployment intent: a shared team server requires HTTP transport and project or enterprise scope. A stdio server in .mcp.json is a configuration that looks shareable but is not.\n\n7"
+      }
+    },
+    {
+      "id": "t3-q20",
+      "test": 3,
+      "module": 3,
+      "topic": "Enterprise integration",
+      "prompt": "A regulated rollout fails review because identity, residency, logging, and configuration control were never specified. What should change in the next project?",
+      "options": [
+        "Replace access controls with an instruction to behave safely",
+        "Identify those requirements before deployment",
+        "Treat them as documentation-only after launch",
+        "Assume a model upgrade resolves them"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The lesson stresses identifying enterprise security requirements early because retrofitting them after deployment is much harder.",
+      "source": {
+        "path": "03-claude-code-mcp-integration/08-key-takeaways.md",
+        "heading": "Enterprise integration requires identifying the security requirements before deployment.",
+        "anchor": "enterprise-integration-requires-identifying-the-security-requirements-before-deployment",
+        "excerpt": "A regulated customer asks about identity, data residency, access logging, and configuration control. The answers come from OAuth for user-identity services, environment variables for service credentials, PostToolUse hooks for audit logging, and enterprise managed settings for configuration lock. None of these is hard to implement, but all of them are hard to retrofit after a production deployment has failed a security review."
+      }
+    },
+    {
+      "id": "t3-q21",
+      "test": 3,
+      "module": 4,
+      "topic": "Evaluation design",
+      "prompt": "A model judge disagrees with humans on representative examples. What should happen before it becomes a release gate?",
+      "options": [
+        "Remove all human labels",
+        "Increase the score until the release passes",
+        "Calibrate it against human-labelled cases and measure agreement",
+        "Treat the judge as correct because it is a model"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The source makes human calibration a prerequisite for trusting a judge. A numeric score alone does not establish grading validity.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Set the standard before you build it.",
+        "anchor": "set-the-standard-before-you-build-it",
+        "excerpt": "An eval turns \"done\" from a feeling into a score on a fixed set of cases. The grading method must match the output: exact match when there is one correct form, a code check for structured output, and a judge for open-ended quality, which you calibrate against human-labelled cases before you trust it. You write the eval first because identifying the expected behavior forces you to define success while the design can still change.\n\n2"
+      }
+    },
+    {
+      "id": "t3-q22",
+      "test": 3,
+      "module": 4,
+      "topic": "Tests and traces",
+      "prompt": "A retrieval task is a single-fact lookup in a known source. What starting pattern matches the course?",
+      "options": [
+        "Always spawn an open-ended search loop",
+        "Use many iterations regardless of task complexity",
+        "Avoid reading the source and guess",
+        "Fetch once, reserving iterative search for genuinely multi-step questions"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The recap distinguishes a simple fetch from iterative agentic search. Additional rounds should serve a multi-step information need.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Match the test to the failure, and trace so you know where it happened.",
+        "anchor": "match-the-test-to-the-failure-and-trace-so-you-know-where-it-happened",
+        "excerpt": "Unit, functional, integration, and end-to-end tests each catch a different break, and most silent failures hide at the integration seam where two passing components hand off. A trace shows which step produced the bad result, which turns a day of investigation into a short fix. The same instinct drives the retrieval choice: fetch once for single-fact lookups, search across iterations when the question is genuinely multi-step.\n\n3"
+      }
+    },
+    {
+      "id": "t3-q23",
+      "test": 3,
+      "module": 4,
+      "topic": "Failure handling",
+      "prompt": "The same malformed request fails identically on every retry. What is the better policy?",
+      "options": [
+        "Recognize that retry cannot repair it and use a named fallback or fail-fast path",
+        "Retry forever without changing the request",
+        "Add random answer text to the conversation",
+        "Label it a successful empty response"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The first distinction is whether waiting can resolve the problem. Non-retriable failures need explicit handling rather than a wasted retry budget.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Sort every failure, then handle them individually.",
+        "anchor": "sort-every-failure-then-handle-them-individually",
+        "excerpt": "The first question for any failure is whether waiting and retrying could resolve the issue. Retriable failures get exponential backoff, with a cap and a retry budget, never an immediate loop that only deepens the problem. Tool failures come back to the model with the error flag set, not hidden behind an empty result that the model mistakes for data. Every failure a retry cannot fix requires a named fallback. Otherwise, an unhandled exception becomes the default behavior, which is how one bad response takes down the whole flow.\n\n4"
+      }
+    },
+    {
+      "id": "t3-q24",
+      "test": 3,
+      "module": 4,
+      "topic": "Cost and orchestration",
+      "prompt": "A broad research task separates cleanly into independent investigations. Why might an orchestrator-worker pattern be reasonable?",
+      "options": [
+        "It removes the need to measure latency",
+        "It can parallelize independent work, if measured benefit justifies extra cost",
+        "It guarantees zero context overhead",
+        "It makes all tasks deterministic"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The pattern earns its cost when the task truly splits. The course warns that parallel agents can multiply token usage.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Measure cost and latency per call, and fan out only when a task truly splits.",
+        "anchor": "measure-cost-and-latency-per-call-and-fan-out-only-when-a-task-truly-splits",
+        "excerpt": "You cannot budget what you do not measure, so instrument token cost, latency, and error rate on every call. Then tune a chosen lever instead of guessing from the invoice. An orchestrator-worker pattern multiplies token cost by the number of subagents, roughly fifteen times in Anthropic's reported case. It earns that cost only on tasks that split into independent parallel parts, not on tightly coupled work that a single agent can handle for a fraction of the cost.\n\n5"
+      }
+    },
+    {
+      "id": "t3-q25",
+      "test": 3,
+      "module": 4,
+      "topic": "Prompt injection defenses",
+      "prompt": "An audit finds that unsafe actions are logged only after execution. What preventative control is missing?",
+      "options": [
+        "A post-action quality check as the only action guardrail",
+        "A rule to trust instructions inside retrieved pages",
+        "A boundary check that can block the action before the tool runs",
+        "A longer retrospective explanation"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Logging is useful but does not itself prevent an action. The course calls for an enforced block-and-log boundary before execution.",
+      "source": {
+        "path": "04-production-engineering-evals-security/08-key-takeaways.md",
+        "heading": "Treat fetched content as data and enforce the boundary with a hook.",
+        "anchor": "treat-fetched-content-as-data-and-enforce-the-boundary-with-a-hook",
+        "excerpt": "A model reads everything in its context together, as one stream of tokens with no built-in line between trusted instructions and untrusted data. An instruction hidden in fetched content can influence the agent's behavior. Trusting your own users does not help, because the injection arrives through the content the agent reads. Examine untrusted input as data, scope the agent's identity to least privilege, keep secrets out of committed config, and enforce the action boundary with a hook that blocks and logs before the tool runs. That boundary is what a regulated review can control and inspect."
+      }
+    },
+    {
+      "id": "t3-q26",
+      "test": 3,
+      "module": 5,
+      "topic": "Reusable accelerators",
+      "prompt": "A team postpones packaging until the original engineers have left. What cost does the course warn about?",
+      "options": [
+        "A guarantee that the code becomes portable automatically",
+        "A reduction in the need for documentation",
+        "The disappearance of all deployment constraints",
+        "Reconstructing which parts and assumptions were customer-specific"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Packaging while knowledge is fresh avoids reconstructing context after the people who hold it have moved on.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Package while the build is fresh.",
+        "anchor": "package-while-the-build-is-fresh",
+        "excerpt": "An accelerator keeps the reusable logic, exposes the customer-specific parts as documented parameters, and bundles the eval and the audit log alongside the asset. Correct packaging produces an asset teams configure. The knowledge of what is customer-specific is most expensive to reconstruct after the people who held it have moved on.\n\n02"
+      }
+    },
+    {
+      "id": "t3-q27",
+      "test": 3,
+      "module": 5,
+      "topic": "Contribution readiness",
+      "prompt": "A useful asset is sent to a channel that does not accept its type. What should the contributor do?",
+      "options": [
+        "Choose the channel built for the asset’s shape and meet its verification bar",
+        "Assume all maintainers accept all artifact types",
+        "Remove the runnable example to make the package smaller",
+        "Treat private success as sufficient proof"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Readiness combines appropriate channel choice with focused, reproducible evidence and assumptions.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "A maintainer accepts what they can verify.",
+        "anchor": "a-maintainer-accepts-what-they-can-verify",
+        "excerpt": "Moving an asset into shared infrastructure means matching it to the channel built for its shape, then clearing the review bar: focused code, a runnable example, a test, and a statement of assumptions, with licensing rights confirmed before the technical review. A contribution a reviewer cannot verify sits at the back of the queue. Readiness moves a private asset into shared infrastructure others build on.\n\n03"
+      }
+    },
+    {
+      "id": "t3-q28",
+      "test": 3,
+      "module": 5,
+      "topic": "Versioning and rollback",
+      "prompt": "A team describes a model alias as a permanent snapshot. What is the correction?",
+      "options": [
+        "Rollback works without retaining a known prior version",
+        "An alias resolves to a changing recommended version; pin a specific version for controlled releases",
+        "Aliases and pinned versions are always identical forever",
+        "Pinning means no future migration is ever needed"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The source compares aliases to a current edition and pinning to a fixed edition. Pinning controls adoption; it is not a promise of eternal availability.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Pin what ships.",
+        "anchor": "pin-what-ships",
+        "excerpt": "Choose the deployment platform based on the customer's cloud and compliance posture, then pin the specific model version rather than the moving alias and keep the prior version available. An alias is like asking for the current edition of a book: convenient, but the text can change. Pinning cites a fixed edition, so an upstream model change is something you adopt deliberately rather than something that arrives overnight with no rollback path.\n\n04"
+      }
+    },
+    {
+      "id": "t3-q29",
+      "test": 3,
+      "module": 5,
+      "topic": "Deployment placement",
+      "prompt": "A platform benchmark is fast in the developer’s region but slow for the customer. What measurement was missing?",
+      "options": [
+        "The deployment latency from the provider’s default region only",
+        "Only another token-price quote",
+        "Latency from the customer’s region",
+        "The model’s advertised benchmark score alone"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The source specifically requires latency to be measured from the customer region, not inferred from a developer-local benchmark.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Measure the dimension that decides the placement.",
+        "anchor": "measure-the-dimension-that-decides-the-placement",
+        "excerpt": "A platform choice is defensible only when latency, compliance, and cost are measured: latency from the customer's region, compliance against their existing certification, and cost as the total per call rather than the token price alone. For regulated customers, compliance is usually pass-or-fail. Raising compliance as a constraint during scoping prevents it from rejecting the build later at contract review.\n\n05"
+      }
+    },
+    {
+      "id": "t3-q30",
+      "test": 3,
+      "module": 5,
+      "topic": "Trust boundaries",
+      "prompt": "Which TWO practices follow the trust-boundary guidance?",
+      "options": [
+        "Treat every point where data crosses as a trust boundary",
+        "Assume sender trust removes receiver validation needs",
+        "Promote fetched content into trusted instructions",
+        "Scope each component to the minimum access its role requires"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "Containment requires least privilege per component and explicit treatment of every crossing. The sender’s trust is not inherited.",
+      "source": {
+        "path": "05-accelerators-ip-contribution/09-key-takeaways.md",
+        "heading": "Mark every seam as a boundary.",
+        "anchor": "mark-every-seam-as-a-boundary",
+        "excerpt": "A multi-component application is only as contained as its most privileged seam. Scope each component to the minimum access its role requires and treat every point where data crosses as a trust boundary. Fetched content is treated as data, not instructions. Trust at a component boundary must be explicitly established. It does not carry over from the component that sent the data. When a seam cannot be secured, it goes to a human owner rather than being shipped."
+      }
+    }
+  ]
+}
